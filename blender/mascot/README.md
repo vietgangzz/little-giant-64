@@ -63,13 +63,17 @@ It never saves the scene back into the .blend.
   outward until they clear the body by 3.5 cm, which ends at **x = ±0.73**.
 - **Feet.** Superellipsoid nubs, 0.26 × 0.17 × 0.12, at x = ±0.22 with soles at z = 0.
   Material `M_Foot`.
-- **Cape.** A 15 × 18 grid draped over the back:
+- **Cape.** It is deliberately small, because the game camera sits behind the hero and lime
+  must dominate from there. It is an 11 × 14 grid:
+  - It is 0.34 wide at the top and 0.48 at the hem (`CAPE_HALF_W`).
+  - It spans z 0.80 → 0.38, leaving lime visible on both flanks and below the hem.
   - Each column hangs at the maximum back depth found above it, so it hugs the upper back and
     then falls clear of the belly.
   - It flares at the hem, wraps a little at the sides, and its top edge sits 2 mm off the surface.
   - It is solidified to 14 mm inward.
-  - It carries a gold 12-point Đông Sơn star inside a ring. The star is conformed to the cape
-    and copies its weights.
+  - Its colour is `#E8583A`, a softer orange-red that harmonises with the lime.
+  - It carries a gold 12-point Đông Sơn star inside a ring (Ø 0.13, centred at z 0.595). The
+    star is conformed to the cape and copies its weights.
 - **Objects.** There are four skinned meshes under one `Armature`:
 
   | object | materials |
@@ -79,7 +83,7 @@ It never saves the scene back into the .blend.
   | `LG_Rays` | `M_Ray` |
   | `LG_Cape` | `M_Cape`, `M_Gold` |
 
-  The total is about 22.4k triangles:
+  The total is about 21.9k triangles:
 
   | object | tris |
   |---|---|
@@ -87,7 +91,7 @@ It never saves the scene back into the .blend.
   | hands and feet | 2.3k |
   | eyes | 5.1k |
   | rays | 3.3k |
-  | cape and star | 1.7k |
+  | cape and star | 1.2k |
 
 ## Rig
 
@@ -102,7 +106,8 @@ root (0,0,0)
 │     │  ├─ eye.L / eye.R   at each eye's centre (blink = scale-Y about it)
 │     │  └─ ray.N → ray.N.tip   along each ray, outward
 │     ├─ hand.L / hand.R    at the hand centres
-│     └─ cape.{L,M,R}.1→2→3 on the cape surface, columns x = +0.2 / 0 / −0.2, pointing down
+│     └─ cape.{L,M,R}.1→2→3 on the cape surface, columns x = +0.115 / 0 / −0.115,
+│                            pointing down; joints at v = 0, ⅓, ⅔, 1 (z ≈ 0.80 → 0.38)
 ├─ foot.L / foot.R          at the foot centres (z 0.042)
 ```
 
@@ -191,6 +196,8 @@ How the clips are authored:
 
 | contract | actual | why |
 |---|---|---|
+| Cape colour `#E0452B` | `#E8583A` | Softer, harmonises with the lime (coordinator's request) |
+| Cape hangs to z ≈ 0.25 | Small cape, z 0.80 → 0.38 | Lime must dominate from the behind-the-hero camera (coordinator's request) |
 | Body about 1.10 wide | 1.17 | Keeps the brand outline's proportions at the mandated 1.05 height |
 | Hands at x ≈ ±0.60 | ±0.73 | At that height the outline itself is ±0.585 wide, so the hands would intersect the body |
 | Inflation formula based on distance to the rim | Poisson/membrane `sqrt(u)` inflation | Same balloon idea, but smoother, with no medial-axis ridges |

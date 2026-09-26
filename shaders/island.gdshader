@@ -29,26 +29,26 @@ void fragment() {
 	float chk = mod(cell.x + cell.y, 2.0);
 	vec3 top;
 	if (kind == 1) {
-		top = mix(vec3(0.93, 0.80, 0.56), vec3(0.87, 0.73, 0.49), chk * 0.7) * (0.94 + n2 * 0.1);
+		top = mix(vec3(0.78, 0.63, 0.42), vec3(0.72, 0.57, 0.37), chk * 0.7) * (0.94 + n2 * 0.1);
 	} else if (kind == 2) {
-		top = mix(vec3(0.50, 0.55, 0.60), vec3(0.42, 0.47, 0.54), n);
+		top = mix(vec3(0.40, 0.45, 0.50), vec3(0.33, 0.38, 0.45), n);
 		top = mix(top, grass_a.rgb, smoothstep(0.55, 0.7, n2) * 0.8);
 	} else if (kind == 3) {
 		// flooded paddy: bright green shoots in rows over mirror water
-		float rows = step(0.5, fract(wpos.x * 1.4 + n * 0.6));
-		top = mix(vec3(0.38, 0.66, 0.78), vec3(0.50, 0.80, 0.28), rows);
+		float rows = step(0.3, fract(wpos.x * 1.1 + n * 0.6));
+		top = mix(vec3(0.36, 0.62, 0.72), mix(vec3(0.52, 0.80, 0.26), vec3(0.44, 0.72, 0.22), chk), rows);
 	} else {
 		top = mix(grass_a.rgb, grass_b.rgb, chk) * (0.93 + n * 0.14);
 	}
 	vec3 side;
 	if (kind == 2) {
 		float streak = texture(noise, vec2(wpos.x * 0.35 + wpos.z * 0.35, wpos.y * 0.03)).r;
-		side = mix(vec3(0.52, 0.56, 0.62), vec3(0.34, 0.39, 0.48), smoothstep(0.35, 0.65, streak));
+		side = mix(vec3(0.44, 0.48, 0.55), vec3(0.26, 0.30, 0.38), smoothstep(0.4, 0.6, streak));
 		// moss clings to the ledges
-		side = mix(side, vec3(0.36, 0.58, 0.30), smoothstep(0.62, 0.8, texture(noise, wpos.xz * 0.3 + vec2(wpos.y * 0.21)).r) * 0.7);
+		side = mix(side, vec3(0.30, 0.52, 0.24), smoothstep(0.56, 0.72, texture(noise, wpos.xz * 0.3 + vec2(wpos.y * 0.21)).r) * 0.85);
 		side *= 0.9 + 0.12 * sin(wpos.y * 3.0 + streak * 6.0);
 	} else if (kind == 1) {
-		side = mix(vec3(0.88, 0.72, 0.48), vec3(0.78, 0.62, 0.40), step(0.5, fract(wpos.y / stripe * 0.5)));
+		side = mix(vec3(0.80, 0.64, 0.42), vec3(0.70, 0.54, 0.34), step(0.5, fract(wpos.y / stripe * 0.5)));
 	} else {
 		float wob = (n - 0.5) * 0.35;
 		float band = step(0.5, fract((wpos.y + wob) / stripe * 0.5));

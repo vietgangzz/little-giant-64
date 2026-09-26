@@ -98,7 +98,7 @@ def build_materials():
     MATS["M_Foot"] = make_material("M_Foot", "#B9D83A", 0.6)
     MATS["M_Eye"] = make_material("M_Eye", "#234D37", 0.25, spec=0.7)
     MATS["M_Ray"] = make_material("M_Ray", "#FF7447", 0.45)
-    MATS["M_Cape"] = make_material("M_Cape", "#E0452B", 0.7)
+    MATS["M_Cape"] = make_material("M_Cape", "#E8583A", 0.7)
     MATS["M_Gold"] = make_material("M_Gold", "#F2B33D", 0.3)
     MATS["M_Gold"].node_tree.nodes["Principled BSDF"].inputs["Metallic"].default_value = 0.6
 
@@ -484,16 +484,19 @@ def build_foot(name, centre):
 # ----------------------------------------------------------------------------
 # Cape with a gold Dong Son star
 # ----------------------------------------------------------------------------
-CAPE_COLS = {"R": -0.20, "M": 0.0, "L": 0.20}
-CAPE_ROW_Z = [0.86, 0.66, 0.46, 0.25]  # joint heights (top of .1 ... bottom of .3)
+# A small cape: ~58 % of the first version's width, hem at z ~0.38, so the lime
+# body still dominates from the (usual) behind-the-hero camera.
+CAPE_COL_SPACING = 0.115
+CAPE_COLS = {"R": -CAPE_COL_SPACING, "M": 0.0, "L": CAPE_COL_SPACING}
+CAPE_HALF_W = (0.17, 0.24)  # half width at the top edge, at the hem
 
 
 def cape_top(x):
-    return 0.90 - 0.10 * (x / 0.34) ** 2
+    return 0.80 - 0.04 * (x / CAPE_HALF_W[0]) ** 2
 
 
 def cape_bottom(x):
-    return 0.25 + 0.035 * (x / 0.42) ** 2
+    return 0.38 + 0.02 * (x / CAPE_HALF_W[1]) ** 2
 
 
 def back_surface_y(body_bvh, x, z):
@@ -504,13 +507,13 @@ def back_surface_y(body_bvh, x, z):
 class CapeShape:
     """Draped cape surface: follows the back, then hangs clear of the belly."""
 
-    NU, NV = 15, 18
+    NU, NV = 11, 14
 
     def __init__(self, body_bvh):
         self.bvh = body_bvh
 
     def half_width(self, v):
-        return 0.30 + 0.12 * v ** 1.2
+        return CAPE_HALF_W[0] + (CAPE_HALF_W[1] - CAPE_HALF_W[0]) * v ** 1.2
 
     def point(self, u, v):
         """u in [-1, 1] across, v in [0, 1] down. Returns outer-surface point."""
@@ -523,7 +526,7 @@ class CapeShape:
             zz = zt + (z - zt) * k / 11.0
             ymax = max(ymax, back_surface_y(self.bvh, x, zz))
         gap = 0.002 + 0.028 * min(1.0, v / 0.35)
-        flare = 0.05 * v * v
+        flare = 0.035 * v * v
         y = ymax + gap + flare
         # slight wrap at the sides
         y -= 0.03 * abs(u) ** 3 * (1.0 - v * 0.5)
@@ -572,11 +575,11 @@ def build_cape(body_ob):
     bm_body.free()
 
     # emblem: 12-point Dong Son star inside a thin ring, conformed to the cape
-    emb = build_star_emblem(ob, centre=(0.0, 0.60))
+    emb = build_star_emblem(ob, centre=(0.0, 0.595))
     return ob, emb, shape
 
 
-def build_star_emblem(cape_ob, centre, n_pts=12, r_out=0.085, r_in=0.052, ring=(0.098, 0.112)):
+def build_star_emblem(cape_ob, centre, n_pts=12, r_out=0.050, r_in=0.031, ring=(0.058, 0.067)):
     bmc = bmesh.new()
     bmc.from_mesh(cape_ob.data)
     bvh = BVHTree.FromBMesh(bmc)
@@ -764,11 +767,11 @@ def weight_cape(ob, shape):
         # recover (u, v) of the drape parameterisation
         zt, zb = cape_top(x), cape_bottom(x)
         vv = min(1.0, max(0.0, (zt - z) / (zt - zb)))
-        # columns: smooth hats at x = -0.2, 0, 0.2 (outer columns own the edges)
+        # columns: smooth hats at the three column x's (outer columns own the edges)
         xs = sorted(CAPE_COLS.items(), key=lambda kv: kv[1])
         cw = {}
         for col, xc in xs:
-            t = max(0.0, 1.0 - abs(x - xc) / 0.20)
+            t = max(0.0, 1.0 - abs(x - xc) / CAPE_COL_SPACING)
             cw[col] = t * t * (3 - 2 * t)
         if x <= xs[0][1]:
             cw = {c: (1.0 if c == xs[0][0] else 0.0) for c, _ in xs}

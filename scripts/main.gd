@@ -35,7 +35,8 @@ func _ready() -> void:
 	else:
 		_show_title()
 	if Game.args.has("all-stars"):
-		for s in Game.STARS.slice(0, Game.STARS.size() - 1):
+		# every star but the terraces one, so touching it plays the finale
+		for s in Game.STARS.slice(1):
 			Game.stars[s["id"]] = true
 		world._refresh_drum()
 	if Game.args.has("warp"):
@@ -63,12 +64,21 @@ func _show_title() -> void:
 	player.model.play("wave", 0.1)
 
 
+var _fps_t := 0.0
+
+
 func _process(delta: float) -> void:
+	if Game.args.has("fps"):
+		_fps_t += delta
+		if _fps_t > 2.0:
+			_fps_t = 0.0
+			print("fps ", Engine.get_frames_per_second(), "  draw calls ", RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME), "  prims ", RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_PRIMITIVES_IN_FRAME))
 	if not playing and title and title.visible:
 		_title_angle += delta * 0.12
-		var c := Vector3(0, 4.5, -6.5)
-		camera.global_position = c + Vector3(sin(_title_angle) * 11.0, 2.6 + sin(_title_angle * 0.7) * 0.8, cos(_title_angle) * 11.0)
-		camera.look_at(c + Vector3(0, 0.6, 0))
+		var c := Vector3(0, 4.6, -6.5)
+		var a := sin(_title_angle) * 0.7
+		camera.global_position = c + Vector3(sin(a) * 6.2, 1.5 + sin(_title_angle * 0.7) * 0.3, cos(a) * 6.2)
+		camera.look_at(c + Vector3(0, 1.45, 0))
 		if not player.model.is_playing_oneshot():
 			player.model.play("idle", 0.3)
 			if randf() < delta * 0.25:

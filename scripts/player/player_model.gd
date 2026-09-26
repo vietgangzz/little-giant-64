@@ -103,6 +103,20 @@ func finished_current() -> bool:
 	return anim.current_animation_position >= anim.current_animation_length - 0.02
 
 
+## Holds a prop in the right hand (the star during STAR GET). Returns the attachment.
+func hold(node: Node3D) -> BoneAttachment3D:
+	if skeleton == null or skeleton.find_bone("hand.R") < 0:
+		add_child(node)
+		node.position = Vector3(0.4, 1.6, 0)
+		return null
+	var att := BoneAttachment3D.new()
+	att.bone_name = "hand.R"
+	skeleton.add_child(att)
+	att.add_child(node)
+	node.position = Vector3(0, 0.12, 0)
+	return att
+
+
 func squash(s: Vector3) -> void:
 	_squash = s
 	_squash_vel = Vector3.ZERO

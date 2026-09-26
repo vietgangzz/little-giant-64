@@ -32,6 +32,8 @@ func _ready() -> void:
 	_sky_islands()
 	_clouds()
 	Game.coin_total = get_tree().get_nodes_in_group("coin").size()
+	if Game.args.has("count"):
+		print("coins placed: ", Game.coin_total, "  red: ", get_tree().get_nodes_in_group("red_coin").size(), "  stars: ", star_points.size())
 	Sound.ambient("ambient_sea", -12.0)
 	Sound.ambient("ambient_birds", -18.0)
 
@@ -339,13 +341,15 @@ func _home() -> void:
 	big_drum = prop("drum_big", Vector3(0, 2.3, -6.5), 0.0, 1.0)
 	Props.add_cylinder(self, 2.05, 2.2, Vector3(0, 3.4, -6.5))
 	_add_drum_glow()
-	coin_ring(Vector3(0, 5.2, -6.5), 1.3, 6)
+	coin_ring(Vector3(0, 6.3, -6.5), 1.5, 6)
 	checkpoint(Vector3(4.5, 2.35, 6.0), -0.4)
-	for p in [Vector3(-10, 2.1, -6), Vector3(10.5, 2.1, -4), Vector3(-9, 2.1, 7), Vector3(9, 2.1, 9), Vector3(-3, 2.1, 12.5), Vector3(12, 2.1, 3)]:
+	for p in [Vector3(-10, 2.1, -6), Vector3(10.5, 2.1, -4), Vector3(-9, 2.1, 7), Vector3(9, 2.1, 9), Vector3(-6.5, 2.1, 12.0), Vector3(12, 2.1, 3)]:
 		tree(p, randf_range(0.9, 1.2))
 	prop("cong_lang", Vector3(-10.2, 2.25, 9.6), -0.85, 1.0, true)
 	scatter(Vector3.ZERO, 12.0, 40, 2.3, ["flower_pink", "flower_yellow", "grass_tuft", "grass_tuft"], 11)
 	coin_ring(Vector3(0, 2.9, 3.5), 4.5, 8)
+	coin_line(Vector3(-11, 2.9, -2), Vector3(-11, 2.9, 4), 4)
+	coin_line(Vector3(8, 2.9, -10), Vector3(12, 2.9, -6), 3)
 	block(Vector3(-5, 5.4, 4), true, 5)
 	block(Vector3(-4, 5.4, 4), false, 0)
 	block(Vector3(-6, 5.4, 4), false, 1)
@@ -412,6 +416,8 @@ func _terraces() -> void:
 	tree(Vector3(41, 2.6, 8.5), 1.1, "tree_palm")
 	tree(Vector3(56, 2.6, 4), 1.0)
 	scatter(Vector3(44, 0, 0), 5.0, 12, 2.7, ["grass_tuft", "flower_yellow"], 31)
+	coin_ring(Vector3(34.5, 3.3, 6.5), 2.0, 6)
+	coin_line(Vector3(52, 3.3, 7), Vector3(58, 3.3, 3), 4)
 	prop("bamboo_cluster", Vector3(40, 2.5, -18), 0.0, 1.0)
 	red_coin(Vector3(61.5, 3.5, -3)) # 2: on the far edge of the lowest terrace
 	crab(Vector3(40, 2.7, 2), 4.0)
@@ -437,6 +443,7 @@ func _waterfall_cliff() -> void:
 	wf.position = Vector3(28, 13.2, -35.6)
 	add_child(wf)
 	coin_line(Vector3(28, 2.6, -24), Vector3(28, 2.6, -32), 5)
+	coin_arc(Vector3(33.5, 2.8, -22.5), Vector3(37.5, 3.0, -20), 1.5, 3)
 	tree(Vector3(22, 1.9, -27), 1.0)
 	tree(Vector3(35, 1.9, -30), 0.9, "tree_palm")
 	checkpoint(Vector3(31.5, 2.2, -27), PI)
@@ -471,6 +478,8 @@ func _pagoda() -> void:
 	prop("lantern", Vector3(-38, 2.4, -9.5), 0.0, 1.0)
 	prop("lantern", Vector3(-46, 2.4, -9.5), 0.0, 1.0)
 	scatter(Vector3(-40, 0, -14), 12.0, 30, 2.45, ["flower_pink", "grass_tuft", "flower_yellow"], 52)
+	coin_ring(Vector3(-47, 3.0, -8), 2.2, 6)
+	coin_line(Vector3(-50, 3.0, -14), Vector3(-50, 3.0, -21), 4)
 	red_coin(Vector3(-41.5, 10.6, -22.0)) # 3: above the highest bamboo step
 	crab(Vector3(-22, 2.6, -6.5), 1.2)
 
@@ -493,6 +502,7 @@ func _karsts() -> void:
 	spring(Vector3(-20, 10.2, -50), 20.0)
 	spring(Vector3(-12.5, 16.2, -50.5), 21.0)
 	coin_line(Vector3(-20, 11.5, -50), Vector3(-20, 14.5, -50), 3)
+	coin_ring(Vector3(-14, 2.3, -42), 3.0, 6)
 	coin_ring(Vector3(-12.5, 17.0, -50.5), 1.2, 5)
 	star("karst", Vector3(-16, 23.0, -56.5))
 	coin_arc(Vector3(-13.2, 18.5, -51.8), Vector3(-15.5, 23.0, -55.6), 2.0, 4)
@@ -516,6 +526,7 @@ func _beach() -> void:
 	star("crabs", Vector3(-40, 2.2, 36), "crab_star")
 	checkpoint(Vector3(-30, 1.5, 27), PI * 0.75)
 	coin_ring(Vector3(-40, 2.1, 36), 10.0, 10)
+	coin_line(Vector3(-46, 2.3, 30), Vector3(-34, 2.3, 42), 5)
 	red_coin(Vector3(-52, 2.2, 36)) # 5: far end of the beach
 	sampan(Vector3(-27, 0.0, 49), Vector3(-17, 0.0, 55), 7.0) # a lazy boat with coins on it
 	coin_line(Vector3(-22, 1.5, 52), Vector3(-16, 1.5, 55.5), 3)
@@ -533,10 +544,12 @@ func _lagoon() -> void:
 	red_coin(Vector3(36, 3.2, 30.2)) # 6: above the ferry's route
 	jelly(Vector3(43.5, 0.2, 37.5), Vector3(0, 2.2, 0), 3.6)
 	jelly(Vector3(46.8, 1.2, 40.0), Vector3(2.4, 0, 0), 4.2, 1.0)
-	for p in [Vector3(50.5, 0.15, 43.0), Vector3(53.0, 0.15, 45.5)]:
-		lotus(p)
+	# a sand step between the last jelly and the island
+	island(Vector3(51.0, 0, 43.6), 1.9, 1.2, Island.Kind.SAND, {"dome": 0.1, "seed": 83})
+	prop("lotus_flower", Vector3(53.2, 0.15, 45.2), 0.7, 1.1)
 	island(Vector3(58, 0, 52), 8.0, 1.5, Island.Kind.GRASS, {"seed": 81})
 	star("lagoon", Vector3(58, 2.3, 52))
+	coin_ring(Vector3(58, 2.3, 52), 4.0, 8)
 	checkpoint(Vector3(55.5, 1.8, 47.5), PI * 0.8)
 	tree(Vector3(61, 1.6, 55), 1.0)
 	tree(Vector3(55, 1.6, 57), 0.9, "tree_palm")
@@ -620,17 +633,18 @@ func on_crab_defeated(tag: String) -> void:
 
 func show_star_reveal(s: Star) -> void:
 	if s.hidden_until == "coin_star" and player:
-		s.global_position = player.global_position + Vector3(0, 3.2, 0) + player.facing * 1.5
+		s.global_position = player.star_spot() + player.facing * 1.2
 	get_tree().call_group("hud", "toast", Game.t("A star appeared!", "Một ngôi sao đã xuất hiện!"))
 
 
 ## The STAR GET moment: freeze, face the camera, lift the star high, fanfare, banner.
 func star_cutscene(s: Star, who: Node) -> void:
 	var p := who as Player
+	var id := s.id ## the star frees itself mid-cutscene
 	Game.in_cutscene = true
 	p.lock(true)
-	var first := not Game.has_star(s.id)
-	Game.collect_star(s.id)
+	var first := not Game.has_star(id)
+	Game.collect_star(id)
 	Sound.play("star_collect", 0.0)
 	Fx.star_burst(s.global_position + Vector3.UP * 0.6)
 	Fx.hitstop(0.08)
@@ -644,15 +658,25 @@ func star_cutscene(s: Star, who: Node) -> void:
 	p.facing = (camera.global_position - p.global_position) * Vector3(1, 0, 1)
 	p.facing = p.facing.normalized() if p.facing.length() > 0.01 else Vector3.BACK
 	p.model.play("star_get", 0.1)
+	var held := Props.make("star")
+	held.scale = Vector3.ONE * 0.55
+	var att := p.model.hold(held)
+	var spin := held.create_tween().set_loops()
+	spin.tween_property(held, "rotation:y", TAU, 1.2).from(0.0)
 	Sound.music("")
 	Sound.jingle("star_get")
 	var c := p.global_position + Vector3.UP * 0.8
 	var a0 := atan2(camera.global_position.x - p.global_position.x, camera.global_position.z - p.global_position.z)
 	camera.orbit_shot(c, 4.2, 1.2, a0 + 0.6, a0, 1.4)
-	get_tree().call_group("hud", "star_banner", s.id, first)
+	get_tree().call_group("hud", "star_banner", id, first)
 	Fx.sparkle(c + Vector3.UP * 1.0, Color(1, 0.9, 0.5), 20, 5.0, 0.45, 1.2)
 	_refresh_drum()
 	await get_tree().create_timer(3.4).timeout
+	spin.kill()
+	if att:
+		att.queue_free()
+	else:
+		held.queue_free()
 	if Game.star_count() >= Game.STARS.size() and not Game.finished:
 		all_stars_finale(p)
 		return
@@ -674,8 +698,8 @@ func all_stars_finale(p: Player) -> void:
 	await get_tree().create_timer(0.7).timeout
 	p.teleport(Vector3(0, 4.6, -6.5), Vector3.BACK)
 	p.lock(true)
-	camera.global_position = Vector3(0, 6.0, 1.5)
-	camera.look_at(Vector3(0, 5.2, -6.5))
+	camera.global_position = Vector3(0, 6.2, -1.3)
+	camera.look_at(Vector3(0, 5.3, -6.5))
 	camera.cutscene = true
 	get_tree().call_group("hud", "fade", 0.0, 0.8)
 	Sound.music("all_stars", 0.3)
@@ -686,7 +710,7 @@ func all_stars_finale(p: Player) -> void:
 	var conf := Fx.confetti(Vector3(0, 14, -6.5), 220, 9.0)
 	p.model.play("dance", 0.2)
 	get_tree().call_group("hud", "all_stars_banner")
-	camera.orbit_shot(Vector3(0, 4.6, -6.5), 8.0, 2.5, 0.0, TAU, 14.0)
+	camera.orbit_shot(Vector3(0, 4.9, -6.5), 5.2, 1.3, 0.0, TAU, 14.0)
 	await get_tree().create_timer(6.0).timeout
 	Sound.play("drum_boom", 0.0, 0.9)
 	Fx.star_burst(Vector3(0, 6, -6.5))

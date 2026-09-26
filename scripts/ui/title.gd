@@ -23,15 +23,12 @@ func _ready() -> void:
 	v.anchor_right = 0.5
 	v.offset_left = -900
 	v.offset_right = 900
-	v.offset_top = 70
+	v.offset_top = 46
 	v.alignment = BoxContainer.ALIGNMENT_CENTER
-	v.add_theme_constant_override("separation", -10)
+	v.add_theme_constant_override("separation", -26)
 	root.add_child(v)
-	_row = UiKit.rainbow("LITTLE GIANT", 150, v, 0.06)
-	var sixty := UiKit.label("64", 110, UiKit.GOLD, 18)
-	sixty.label_settings.outline_color = Color.WHITE
-	v.add_child(sixty)
-	var sub := UiKit.label(Game.t("Hạ Long Skies", "Bầu Trời Hạ Long"), 44, Color("#fffbe8"), 10)
+	_row = UiKit.rainbow("LITTLE GIANT 64", 150, v, 0.06, true, 13)
+	var sub := UiKit.label(Game.t("Hạ Long Skies", "Bầu Trời Hạ Long"), 46, Color("#fffbe8"), 10)
 	sub.name = "Sub"
 	v.add_child(sub)
 	_menu = VBoxContainer.new()

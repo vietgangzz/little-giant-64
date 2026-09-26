@@ -45,11 +45,14 @@ var ROUTES := {
 		["leap", Vector3(19.5, 0, 16.8), 0.35, false, true], ["stop"], ["wait", 0.15], ["leap", Vector3(23.8, 0, 20.2), 0.35, false, true], ["stop"], ["wait", 0.15],
 		["leap", Vector3(27.8, 0, 23.4), 0.35, false, true], ["stop"], ["wait_boat", 0], ["leap_boat"], ["stop"], ["ride"],
 		["leap", Vector3(43.5, 0, 37.5), 0.35, true], ["stop"], ["wait", 0.2],
-		["leap", Vector3(47.8, 0, 40.0), 0.3, false], ["stop"], ["wait", 0.2], ["leap", Vector3(50.5, 0, 43), 0.35, false, true], ["stop"],
-		["leap", Vector3(53, 0, 45.5), 0.35, false, true], ["stop"], ["leap", Vector3(55.8, 0, 48.4), 0.35, false, true], ["goto", Vector3(58, 0, 52), 0.6], ["stop"], ["wait", 5.0], ["star", "lagoon"],
+		["hop_jelly", Vector3(47.8, 0, 40.0), 2.6, 0.6], ["stop"], ["wait", 0.2], ["hop", Vector3(51.0, 0, 43.6), 3.2, 0.55], ["stop"], ["wait", 0.2],
+		["hop", Vector3(55.8, 0, 48.4), 5.0, 0.7], ["goto", Vector3(58, 0, 52), 0.6], ["stop"], ["wait", 5.0], ["star", "lagoon"],
 	],
 	"crabs": [
 		["warp", Vector3(-40, 2.5, 36)], ["hunt"], ["wait", 2.0], ["goto", Vector3(-40, 0, 36), 0.5], ["stop"], ["wait", 5.0], ["star", "crabs"],
+	],
+	"coins": [
+		["collect_coins", 100], ["wait", 1.2], ["reach_star", "coins"], ["stop"], ["wait", 5.0], ["star", "coins"],
 	],
 	"lanterns": [
 		["collect_red"], ["wait", 1.5], ["warp", Vector3(-38.5, 3.0, -7.5)], ["goto", Vector3(-38.5, 0, -10.5), 0.5], ["stop"], ["wait", 5.0], ["star", "lanterns"],
@@ -134,6 +137,42 @@ func _step(step: Array):
 			await get_tree().physics_frame
 		"hop":
 			return await _hop(step[1], step[2], step[3] if step.size() > 3 else 1.0)
+		"hop_jelly":
+			var best: Node3D
+			for n in get_tree().get_nodes_in_group("unsafe"):
+				if n is JellyBlock and (best == null or (n as Node3D).global_position.distance_to(step[1]) < best.global_position.distance_to(step[1])):
+					best = n
+			return await _hop(step[1], step[2], step[3], best)
+		"collect_coins":
+			# far coins first, so a few stay on home island to walk into at the end
+			var all := get_tree().get_nodes_in_group("coin")
+			all.sort_custom(func(a, b): return (a as Node3D).global_position.length() > (b as Node3D).global_position.length())
+			for c in all:
+				if Game.coins >= int(step[1]) - 1:
+					break
+				while Game.in_cutscene:
+					await get_tree().physics_frame
+				if not is_instance_valid(c):
+					continue
+				player.teleport((c as Node3D).global_position + Vector3(0, -0.2, 0), Vector3.FORWARD)
+				await _wait(0.15)
+			# walk into the last one on home island like a player would
+			player.teleport(Vector3(0, 2.6, 12), Vector3.FORWARD)
+			await _wait(0.6)
+			var last: Node3D
+			for c in get_tree().get_nodes_in_group("coin"):
+				if is_instance_valid(c) and absf((c as Node3D).global_position.y - player.global_position.y) < 1.2 and (last == null or (c as Node3D).global_position.distance_to(player.global_position) < last.global_position.distance_to(player.global_position)):
+					last = c
+			await _goto(last.global_position, 0.3)
+			player.bot_world_dir = Vector3.ZERO
+			await _wait(0.6)
+			_log("  coins: %d" % Game.coins)
+			return Game.coins >= int(step[1])
+		"reach_star":
+			for n in get_tree().get_nodes_in_group("star"):
+				if (n as Star).id == step[1] and n.visible:
+					return await _hop((n as Node3D).global_position, 1.2, 0.5)
+			return false
 		"back":
 			# step back from the edge of a pillar, away from the next target, to get a run-up
 			var away: Vector3 = (player.global_position - (step[1] as Vector3)) * Vector3(1, 0, 1)
@@ -267,7 +306,7 @@ func _leap(target: Vector3, hold: float, double: bool, short := false) -> bool:
 
 
 ## Runs at `target` and jumps once within `jump_dist`, steering (and braking) until landed.
-func _hop(target: Vector3, jump_dist: float, speed := 1.0) -> bool:
+func _hop(target: Vector3, jump_dist: float, speed := 1.0, follow: Node3D = null) -> bool:
 	var t := 0.0
 	var jumped := false
 	var jt := 0.0
@@ -275,6 +314,8 @@ func _hop(target: Vector3, jump_dist: float, speed := 1.0) -> bool:
 		await get_tree().physics_frame
 		t += get_physics_process_delta_time()
 		_trace()
+		if follow:
+			target = follow.global_position
 		var d := (target - player.global_position) * Vector3(1, 0, 1)
 		if not jumped:
 			player.bot_world_dir = d.normalized() * speed

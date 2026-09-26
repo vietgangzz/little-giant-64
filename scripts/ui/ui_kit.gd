@@ -72,16 +72,21 @@ static func label(text: String, size: int, color := Color.WHITE, outline := 10, 
 
 
 ## A headline where every letter has its own colour and bounces in, like the ALL STARS banner.
-static func rainbow(text: String, size: int, parent: Control, stagger := 0.045, white_outline := true) -> HBoxContainer:
+static func rainbow(text: String, size: int, parent: Control, stagger := 0.045, white_outline := true, gold_from := -1) -> HBoxContainer:
 	var row := HBoxContainer.new()
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("separation", int(-size * 0.04))
 	parent.add_child(row)
 	var i := 0
+	var idx := 0
 	for ch in text:
 		var l := Label.new()
 		l.text = ch
-		var ls := style(size, RAINBOW[i % RAINBOW.size()] if ch != " " else Color.WHITE, int(size * 0.16), true)
+		var col: Color = RAINBOW[i % RAINBOW.size()] if ch != " " else Color.WHITE
+		if gold_from >= 0 and idx >= gold_from:
+			col = GOLD
+		idx += 1
+		var ls := style(size, col, int(size * 0.16), true)
 		if white_outline:
 			ls.outline_color = Color.WHITE
 			ls.shadow_color = Color(0.05, 0.1, 0.3, 0.55)

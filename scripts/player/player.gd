@@ -655,5 +655,15 @@ func teleport(where: Vector3, face := Vector3.ZERO) -> void:
 	_enter(S.AIR)
 
 
+## Somewhere reachable to hang a star: 2.2 m above the ground under the hero, or above the
+## last safe spot when the hero is over the sea.
+func star_spot() -> Vector3:
+	var q := PhysicsRayQueryParameters3D.create(global_position + Vector3.UP * 0.5, global_position + Vector3.DOWN * 30.0, 1)
+	var hit := get_world_3d().direct_space_state.intersect_ray(q)
+	if not hit.is_empty() and (hit["position"] as Vector3).y > SEA_LEVEL + 0.5:
+		return hit["position"] + Vector3.UP * 2.2
+	return (_safe[-1] if not _safe.is_empty() else _checkpoint) + Vector3.UP * 2.2
+
+
 func set_cape(on: bool) -> void:
 	model.set_cape(on)

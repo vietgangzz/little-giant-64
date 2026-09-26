@@ -4,15 +4,15 @@ extends Node3D
 ## height at ground level through jumps, turns in 45° steps (Q/E, like the C-buttons), orbits
 ## freely with the mouse or right stick, and pulls in when scenery gets in the way.
 
-const DISTANCES := [7.8, 11.0, 5.4]
+const DISTANCES := [5.6, 8.4, 4.0]
 const MIN_PITCH := deg_to_rad(-12.0)
 const MAX_PITCH := deg_to_rad(62.0)
 
 var target: Player
 var cam: Camera3D
 var yaw := 0.0
-var pitch := deg_to_rad(20.0)
-var distance := 7.8
+var pitch := deg_to_rad(17.0)
+var distance := 5.6
 var zoom_index := 0
 var cutscene := false
 var cut_from: Transform3D
@@ -22,7 +22,7 @@ var _yaw_goal := 0.0
 var _manual_timer := 0.0
 var _focus := Vector3.ZERO
 var _ground_y := 0.0
-var _cur_dist := 7.8
+var _cur_dist := 5.6
 var _shake := 0.0
 var _shake_time := 0.0
 var _shake_strength := 0.0
@@ -72,9 +72,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event.button_index == MOUSE_BUTTON_LEFT or event.button_index == MOUSE_BUTTON_RIGHT:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		elif event.button_index == MOUSE_BUTTON_WHEEL_UP:
-			distance = maxf(distance - 0.8, 4.5)
+			distance = maxf(distance - 0.6, 3.4)
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-			distance = minf(distance + 0.8, 14.0)
+			distance = minf(distance + 0.6, 12.0)
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		var sx := -1.0 if Game.invert_x else 1.0
 		var sy := -1.0 if Game.invert_y else 1.0
@@ -146,7 +146,7 @@ func _process(delta: float) -> void:
 		_ground_y = p.y
 	elif p.y > _ground_y + 3.5:
 		_ground_y = lerpf(_ground_y, p.y - 3.5, clampf(delta * 5.0, 0.0, 1.0))
-	var focus_goal := Vector3(p.x, lerpf(_ground_y, p.y, 0.35) + 1.1, p.z)
+	var focus_goal := Vector3(p.x, lerpf(_ground_y, p.y, 0.35) + 1.35, p.z)
 	_focus = _focus.lerp(focus_goal, clampf(delta * 10.0, 0.0, 1.0))
 	_focus.y = lerpf(_focus.y, focus_goal.y, clampf(delta * 4.0, 0.0, 1.0))
 
@@ -181,7 +181,7 @@ func _apply(delta: float) -> void:
 	else:
 		_cur_dist = lerpf(_cur_dist, want, clampf(delta * 2.5, 0.0, 1.0))
 	global_position = _focus + dir * _cur_dist
-	look_at(_focus + Vector3.UP * 0.2, Vector3.UP)
+	look_at(_focus + Vector3.UP * 0.05, Vector3.UP)
 
 
 func _on_shake(strength: float, duration: float) -> void:
