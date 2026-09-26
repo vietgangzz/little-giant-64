@@ -88,6 +88,8 @@ func _ready() -> void:
 		else:
 			args[s] = true
 	_setup_input()
+	if args.has("trailer"):
+		seed(64) # the same take every time
 	load_save()
 	if args.has("lang"):
 		lang = String(args["lang"])
@@ -96,7 +98,7 @@ func _ready() -> void:
 
 
 func is_test_run() -> bool:
-	return args.has("bot") or args.has("god") or args.has("tour") or args.has("shot") or args.has("warp") or args.has("all-stars")
+	return args.has("bot") or args.has("trailer") or args.has("god") or args.has("tour") or args.has("shot") or args.has("warp") or args.has("all-stars")
 
 
 func _process(delta: float) -> void:

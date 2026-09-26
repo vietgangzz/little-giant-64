@@ -89,6 +89,19 @@ func _offset(i: int) -> float:
 	return spacing * 0.5 + (i - 1) * spacing
 
 
+## Puts the head at path offset `s` (the trailer uses it to time shots).
+func set_head(s: float) -> void:
+	_s = fmod(s + _length * 4.0, _length)
+
+
+func offset_of(point: Vector3) -> float:
+	return path.get_closest_offset(point - global_position)
+
+
+func part_offset(i: int) -> float:
+	return _offset(i)
+
+
 ## Where along the path the head is (world space) — the bot uses it.
 func head_position() -> Vector3:
 	return head.global_position

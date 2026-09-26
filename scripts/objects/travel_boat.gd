@@ -75,5 +75,7 @@ func _leave() -> void:
 	tw.tween_property(self, "position", position + global_transform.basis.z * -6.0, 1.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 	get_tree().call_group("hud", "fade", 1.0, 1.2)
 	await get_tree().create_timer(1.6).timeout
+	if Game.args.has("trailer"):
+		return # the trailer cuts to the next level itself
 	Game.save()
 	Game.travel(destination)

@@ -102,6 +102,8 @@ var trace := false
 
 func _ready() -> void:
 	trace = Game.args.has("trace")
+	if not Game.args.has("bot"):
+		return # used as a move library by the trailer director
 	var which := String(Game.args.get("bot", "moves"))
 	name_list = ROUTES.keys() if which == "all" else which.split(",")
 	await get_tree().create_timer(0.6).timeout

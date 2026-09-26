@@ -418,7 +418,7 @@ func _home() -> void:
 	_add_drum_glow()
 	coin_ring(Vector3(0, 6.3, -6.5), 1.5, 6)
 	checkpoint(Vector3(4.5, 2.35, 6.0), -0.4)
-	for p in [Vector3(-10, 2.1, -6), Vector3(10.5, 2.1, -4), Vector3(-9, 2.1, 7), Vector3(9, 2.1, 9), Vector3(-6.5, 2.1, 12.0), Vector3(12, 2.1, 3)]:
+	for p in [Vector3(-10, 2.1, -6), Vector3(10.5, 2.1, -4), Vector3(-12, 2.1, 3), Vector3(9, 2.1, 9), Vector3(-6.5, 2.1, 12.0), Vector3(12, 2.1, 3)]:
 		tree(p, randf_range(0.9, 1.2))
 	prop("cong_lang", Vector3(-10.2, 2.25, 9.6), -0.85, 1.0, true)
 	scatter(Vector3.ZERO, 12.0, 40, 2.3, ["flower_pink", "flower_yellow", "grass_tuft", "grass_tuft"], 11)

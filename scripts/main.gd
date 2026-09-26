@@ -30,7 +30,8 @@ func _ready() -> void:
 	add_child(hud)
 	pause_menu = PauseMenu.new()
 	add_child(pause_menu)
-	if Game.args.has("start") or Game.args.has("warp") or Game.args.has("tour") or Game.args.has("bot"):
+	var trailer_title: bool = String(Game.args.get("trailer", "")) == "skies"
+	if Game.args.has("start") or Game.args.has("warp") or Game.args.has("tour") or Game.args.has("bot") or (Game.args.has("trailer") and not trailer_title):
 		_begin(true)
 	else:
 		_show_title()
@@ -47,6 +48,8 @@ func _ready() -> void:
 		_tour(String(Game.args["tour"]))
 	if Game.args.has("bot"):
 		add_child(QaBot.new())
+	if Game.args.has("trailer"):
+		add_child(Trailer.new())
 
 
 func _show_title() -> void:
