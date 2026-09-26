@@ -23,6 +23,7 @@ blender -b blender/mascot/mascot.blend --python-exit-code 1 -P blender/mascot/re
 |---|---|
 | `turnaround.png` | front, 3/4, side and back views |
 | `hero.png` | 3/4 close-up |
+| `back.png` | back close-up of the flag cape |
 | `face.png` | front close-up |
 | `contact_1.png`, `contact_2.png` | 3 frames of every clip |
 | `contact_back_*.png` | the same frames from behind |
@@ -63,17 +64,20 @@ It never saves the scene back into the .blend.
   outward until they clear the body by 3.5 cm, which ends at **x = ±0.73**.
 - **Feet.** Superellipsoid nubs, 0.26 × 0.17 × 0.12, at x = ±0.22 with soles at z = 0.
   Material `M_Foot`.
-- **Cape.** It is deliberately small, because the game camera sits behind the hero and lime
-  must dominate from there. It is an 11 × 14 grid:
-  - It is 0.34 wide at the top and 0.48 at the hem (`CAPE_HALF_W`).
-  - It spans z 0.80 → 0.38, leaving lime visible on both flanks and below the hem.
+- **Cape.** The cape is the **Vietnamese flag**. It is deliberately small, because the game
+  camera sits behind the hero and lime must dominate from there. It is a 13 × 16 grid:
+  - Its shape is flag-like: nearly rectangular, 0.38 wide at the top and 0.42 at the hem
+    (`CAPE_HALF_W`).
+  - It spans z 0.80 → 0.38. The hem is straight with a gentle ±1 cm flutter wave, and the cloth
+    has a soft ripple toward the hem.
   - Each column hangs at the maximum back depth found above it, so it hugs the upper back and
     then falls clear of the belly.
-  - It flares at the hem, wraps a little at the sides, and its top edge sits 2 mm off the surface.
-  - It is solidified to 14 mm inward.
-  - Its colour is `#E8583A`, a softer orange-red that harmonises with the lime.
-  - It carries a gold 12-point Đông Sơn star inside a ring (Ø 0.13, centred at z 0.595). The
-    star is conformed to the cape and copies its weights.
+  - Its top edge sits 2 mm off the surface, and it is solidified to 14 mm inward.
+  - `M_Cape` is the official red `#DA251D`.
+  - It carries one yellow 5-point star, `M_FlagStar` `#FFFF00`: regular, pointing up, flat
+    shaded. The star is 0.25 across (60 % of the cape height) and centred at z 0.585.
+  - The star is a closed slab from 3.5 mm above the cloth to 4 mm inside it, so it never
+    z-fights. It is conformed to the cape and copies its weights.
 - **Objects.** There are four skinned meshes under one `Armature`:
 
   | object | materials |
@@ -81,9 +85,9 @@ It never saves the scene back into the .blend.
   | `LG_Body` | `M_Body`, `M_Foot` (body, hands, feet) |
   | `LG_Eyes` | `M_Eye` |
   | `LG_Rays` | `M_Ray` |
-  | `LG_Cape` | `M_Cape`, `M_Gold` |
+  | `LG_Cape` | `M_Cape`, `M_FlagStar` |
 
-  The total is about 21.9k triangles:
+  The total is about 22.3k triangles:
 
   | object | tris |
   |---|---|
@@ -91,7 +95,7 @@ It never saves the scene back into the .blend.
   | hands and feet | 2.3k |
   | eyes | 5.1k |
   | rays | 3.3k |
-  | cape and star | 1.2k |
+  | cape and star | 1.6k |
 
 ## Rig
 
@@ -196,7 +200,7 @@ How the clips are authored:
 
 | contract | actual | why |
 |---|---|---|
-| Cape colour `#E0452B` | `#E8583A` | Softer, harmonises with the lime (coordinator's request) |
+| Cape: orange-red `#E0452B` with a gold Đông Sơn star | Vietnamese flag: red `#DA251D` with a yellow 5-point star (`M_FlagStar`) | Owner's request |
 | Cape hangs to z ≈ 0.25 | Small cape, z 0.80 → 0.38 | Lime must dominate from the behind-the-hero camera (coordinator's request) |
 | Body about 1.10 wide | 1.17 | Keeps the brand outline's proportions at the mandated 1.05 height |
 | Hands at x ≈ ±0.60 | ±0.73 | At that height the outline itself is ±0.585 wide, so the hands would intersect the body |

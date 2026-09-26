@@ -7,6 +7,10 @@ var b := Vector3.ZERO
 var trip := 6.0 ## seconds one way
 var pause := 1.2
 var phase := 0.0
+var prop_name := "sampan"
+var deck := Vector3(1.4, 0.5, 3.4) ## collision box
+var deck_y := 0.35 ## centre height of the box
+var rock := 1.0
 var _t := 0.0
 var _visual: Node3D
 
@@ -18,11 +22,11 @@ func _ready() -> void:
 	collision_mask = 0
 	var cs := CollisionShape3D.new()
 	var box := BoxShape3D.new()
-	box.size = Vector3(1.4, 0.5, 3.4)
+	box.size = deck
 	cs.shape = box
-	cs.position.y = 0.35
+	cs.position.y = deck_y
 	add_child(cs)
-	_visual = Props.make("sampan")
+	_visual = Props.make(prop_name)
 	add_child(_visual)
 	_t = phase
 	global_position = a
@@ -49,5 +53,5 @@ func _physics_process(delta: float) -> void:
 	global_position = pos
 	var dir := (b - a).normalized()
 	rotation.y = atan2(dir.x, dir.z)
-	_visual.rotation.z = sin(_t * 1.3) * 0.04
-	_visual.rotation.x = sin(_t * 1.1 + 1.0) * 0.025
+	_visual.rotation.z = sin(_t * 1.3) * 0.04 * rock
+	_visual.rotation.x = sin(_t * 1.1 + 1.0) * 0.025 * rock

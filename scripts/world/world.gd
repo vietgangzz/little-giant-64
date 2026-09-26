@@ -17,10 +17,36 @@ var _crabs_left: Dictionary = {}
 var _drum_rings: Array[MeshInstance3D] = []
 
 
+## Look settings a level can override before _ready.
+var sky_top := Color(0.25, 0.56, 0.93)
+var sky_horizon := Color(0.78, 0.92, 1.0)
+var fog_color := Color(0.66, 0.84, 0.98)
+var fog_begin := 110.0
+var fog_end := 520.0
+var sea_deep := Color(0.10, 0.45, 0.82)
+var sea_mid := Color(0.20, 0.66, 0.92)
+var sea_shallow := Color(0.55, 0.90, 0.96)
+var sun_rotation := Vector3(-52, -38, 0)
+var sun_color := Color(1.0, 0.96, 0.88)
+var title_focus := Vector3(0, 4.6, -6.5) ## where the title camera circles
+var music := "world"
+var ambient_energy := 0.82
+var exposure := 1.08
+
+
 func _ready() -> void:
 	add_to_group("world")
 	_environment()
 	_sea()
+	build()
+	Game.coin_total = get_tree().get_nodes_in_group("coin").size()
+	if Game.args.has("count"):
+		print("coins placed: ", Game.coin_total, "  red: ", get_tree().get_nodes_in_group("red_coin").size(), "  stars: ", star_points.size())
+	ambience()
+
+
+## Hạ Long Skies. Other levels override build(), ambience() and finale().
+func build() -> void:
 	_backdrop()
 	_home()
 	_terraces()
@@ -31,11 +57,37 @@ func _ready() -> void:
 	_lagoon()
 	_sky_islands()
 	_clouds()
-	Game.coin_total = get_tree().get_nodes_in_group("coin").size()
-	if Game.args.has("count"):
-		print("coins placed: ", Game.coin_total, "  red: ", get_tree().get_nodes_in_group("red_coin").size(), "  stars: ", star_points.size())
+	_travel_boat(Vector3(6.5, 0.0, 18.5), -2.5, "halong")
+
+
+## Camera framings for the --tour screenshot pass: [name, eye, target].
+func tour_views() -> Array:
+	return [
+		["home", Vector3(14, 12, 22), Vector3(0, 2, -2)],
+		["drum", Vector3(4, 7.5, 2), Vector3(0, 4, -6.5)],
+		["terraces", Vector3(28, 14, 16), Vector3(49, 7, -9)],
+		["waterfall", Vector3(28, 7, -16), Vector3(28, 6, -38)],
+		["pagoda", Vector3(-24, 9, 2), Vector3(-41, 5, -16)],
+		["karsts", Vector3(0, 14, -30), Vector3(-15, 12, -54)],
+		["beach", Vector3(-22, 10, 18), Vector3(-40, 1, 36)],
+		["lagoon", Vector3(22, 10, 8), Vector3(40, 1, 35)],
+		["overview", Vector3(60, 70, 90), Vector3(0, 0, -5)],
+		["behind_hero", Vector3.ZERO, Vector3.ZERO],
+	]
+
+
+func ambience() -> void:
 	Sound.ambient("ambient_sea", -12.0)
 	Sound.ambient("ambient_birds", -18.0)
+
+
+## A junk boat moored at the shore that sails the hero to another level.
+func _travel_boat(pos: Vector3, rot: float, to: String) -> void:
+	var t := TravelBoat.new()
+	t.destination = to
+	t.position = pos
+	t.rotation.y = rot
+	add_child(t)
 
 
 # =================================================================== environment
@@ -47,16 +99,18 @@ func _environment() -> void:
 	var sm := ShaderMaterial.new()
 	sm.shader = preload("res://shaders/sky.gdshader")
 	sm.set_shader_parameter("noise", Fx.noise_tex)
+	sm.set_shader_parameter("top_color", sky_top)
+	sm.set_shader_parameter("horizon_color", sky_horizon)
 	sky.sky_material = sm
 	sky.radiance_size = Sky.RADIANCE_SIZE_128
 	env.background_mode = Environment.BG_SKY
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY
-	env.ambient_light_energy = 0.82
+	env.ambient_light_energy = ambient_energy
 	env.ambient_light_sky_contribution = 0.7
 	env.reflected_light_source = Environment.REFLECTION_SOURCE_SKY
 	env.tonemap_mode = Environment.TONE_MAPPER_AGX
-	env.tonemap_exposure = 1.08
+	env.tonemap_exposure = exposure
 	env.tonemap_white = 6.0
 	env.glow_enabled = true
 	env.glow_intensity = 0.55
@@ -67,12 +121,12 @@ func _environment() -> void:
 	env.ssao_radius = 1.4
 	env.ssao_intensity = 1.6
 	env.ssao_light_affect = 0.15
-	env.fog_enabled = true
+	env.fog_enabled = not Game.args.has("nofog")
 	env.fog_mode = Environment.FOG_MODE_DEPTH
-	env.fog_light_color = Color(0.66, 0.84, 0.98)
+	env.fog_light_color = fog_color
 	env.fog_density = 1.0
-	env.fog_depth_begin = 110.0
-	env.fog_depth_end = 520.0
+	env.fog_depth_begin = fog_begin
+	env.fog_depth_end = fog_end
 	env.fog_depth_curve = 1.6
 	env.fog_sky_affect = 0.0
 	env.adjustment_enabled = true
@@ -81,8 +135,8 @@ func _environment() -> void:
 	we.environment = env
 	add_child(we)
 	sun = DirectionalLight3D.new()
-	sun.rotation_degrees = Vector3(-52, -38, 0)
-	sun.light_color = Color(1.0, 0.96, 0.88)
+	sun.rotation_degrees = sun_rotation
+	sun.light_color = sun_color
 	sun.light_energy = 1.35
 	sun.shadow_enabled = true
 	sun.shadow_bias = 0.04
@@ -104,6 +158,9 @@ func _sea() -> void:
 	var m := ShaderMaterial.new()
 	m.shader = preload("res://shaders/water.gdshader")
 	m.set_shader_parameter("noise", Fx.noise_tex)
+	m.set_shader_parameter("deep", sea_deep)
+	m.set_shader_parameter("mid", sea_mid)
+	m.set_shader_parameter("shallow", sea_shallow)
 	mi.material_override = m
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	mi.name = "Sea"
@@ -265,14 +322,32 @@ func plank_bridge(a: Vector3, b: Vector3, gap_at := -1.0) -> void:
 	var d := b - a
 	var n := int(d.length() / 1.0)
 	var yaw := atan2(d.x, d.z)
+	var gap := 1.25 / d.length()
 	for i in n:
 		var t := (i + 0.5) / n
-		if gap_at >= 0.0 and absf(t - gap_at) < 1.25 / d.length():
+		if gap_at >= 0.0 and absf(t - gap_at) < gap:
 			continue
 		var pos := a.lerp(b, t)
 		var p := prop("bridge_plank", pos, yaw + randf_range(-0.03, 0.03))
-		p.position.y += sin(t * PI) * 0.25 - 0.1
-		Props.add_box(self, Vector3(1.05, 0.2, 1.02), p.position + Vector3(0, 0.1, 0)).rotation.y = yaw
+		p.position.y = pos.y - 0.21
+	# one smooth deck per stretch (separate plank boxes left little steps that stopped the hero)
+	var spans := [[0.0, 1.0]]
+	if gap_at >= 0.0:
+		spans = [[0.0, gap_at - gap], [gap_at + gap, 1.0]]
+	for sp in spans:
+		var p0 := a.lerp(b, sp[0])
+		var p1 := a.lerp(b, sp[1])
+		var body := StaticBody3D.new()
+		body.collision_layer = 1
+		body.collision_mask = 0
+		var cs := CollisionShape3D.new()
+		var box := BoxShape3D.new()
+		box.size = Vector3(1.5, 0.3, p0.distance_to(p1))
+		cs.shape = box
+		cs.position.y = -0.15
+		body.add_child(cs)
+		add_child(body)
+		body.global_transform = Transform3D(Basis.looking_at(p1 - p0, Vector3.UP), (p0 + p1) * 0.5)
 	for side in [-1.0, 1.0]:
 		var off: Vector3 = Vector3(cos(yaw), 0, -sin(yaw)) * 0.62 * float(side)
 		for i in range(0, n, 2):
@@ -280,7 +355,7 @@ func plank_bridge(a: Vector3, b: Vector3, gap_at := -1.0) -> void:
 			if gap_at >= 0.0 and absf(t - gap_at) < 2.0 / d.length():
 				continue
 			var pos: Vector3 = a.lerp(b, t) + off
-			var f := prop("fence_bamboo", pos + Vector3(0, sin(t * PI) * 0.25 - 0.1, 0), yaw + PI / 2.0, 0.9)
+			var f := prop("fence_bamboo", pos + Vector3(0, -0.1, 0), yaw + PI / 2.0, 0.9)
 			f.scale.x = 0.9
 
 
@@ -677,19 +752,24 @@ func star_cutscene(s: Star, who: Node) -> void:
 		att.queue_free()
 	else:
 		held.queue_free()
-	if Game.star_count() >= Game.STARS.size() and not Game.finished:
-		all_stars_finale(p)
+	if Game.level_star_count() >= Game.level_star_total() and not Game.finished:
+		finale(p)
 		return
 	camera.release()
 	p.lock(false)
 	Game.in_cutscene = false
-	Sound.music("world", 1.5)
+	Sound.music(music, 1.5)
 	star_sequence_done.emit()
+
+
+func finale(p: Player) -> void:
+	all_stars_finale(p)
 
 
 ## ALL STARS! Everyone gathers at the bronze drum, which rings out; confetti, dance, credits.
 func all_stars_finale(p: Player) -> void:
 	Game.finished = true
+	Game.finished_levels[Game.level] = true
 	Game.in_cutscene = true
 	if Game.best_time <= 0.0 or Game.play_time < Game.best_time:
 		Game.best_time = Game.play_time

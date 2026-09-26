@@ -22,8 +22,8 @@ Outputs:
 
 - `blender/props/props.blend`: one collection per prop, laid out in a row along +X.
 - `assets/models/props/<name>.glb`: glTF binary, +Y up, modifiers applied, no cameras or lights.
-- `blender/props/renders/sheet_*.png`: EEVEE contact sheets, 4 × 3 tiles, 1600 px wide. Per-prop tiles
-  are in `renders/tiles/`.
+- `blender/props/renders/sheet_*.png` (Hạ Long Skies) and `renders/halong_sheet_*.png` (Vịnh Hạ Long):
+  EEVEE contact sheets, 4 × 3 tiles, 1600 px wide. Per-prop tiles are in `renders/tiles/`.
 
 A full build takes about 6 s, and rendering takes about 15 s more.
 
@@ -39,6 +39,9 @@ A full build takes about 6 s, and rendering takes about 15 s more.
 | `p_nature.py` | bamboo_pipe, tree_round, tree_palm, bamboo_cluster, lotus_pad, lotus_flower, flowers, grass, mushroom, rock_karst, cloud |
 | `p_structures.py` | checkpoint, pagoda, sampan, lantern, fence_bamboo, bridge_plank, cong_lang |
 | `p_crab.py` | crab mesh, armature and actions |
+| `p_halong.py` | Hạ Long: junk_boat, raft_house, raft_platform, fish_cage_ring, kayak, pavilion_titop, buoy, seagull, net_rack, vietnam_flag |
+| `p_cave.py` | Hạ Long: pearl, stalactite, stalagmite, crystal_cluster |
+| `p_dragon.py` | Hạ Long: dragon_head, dragon_body, dragon_tail, dragon_leg |
 | `render.py` | contact-sheet renderer |
 
 ## Props
@@ -77,6 +80,36 @@ Sizes are the AABB measured in Godot after import, in metres: width X × height 
 | bridge_plank | ~1.1k | 0.97 × 0.22 × 1.00 | 1 m wide; tiles every 1 m along the walking direction (Godot Z) |
 | cong_lang | 4078 | 4.50 × 4.58 × 1.89 | village gate; the arch opening is 2.1 m wide and 3.1 m high |
 | crab | 2542 | 0.91 × 0.52 × 0.93 | skinned; see below |
+
+## Level 2: Vịnh Hạ Long
+
+| glb | tris | size (X × Y × Z) | key heights / notes |
+|---|---:|---|---|
+| junk_boat | 4810 | 3.34 × 10.33 × 11.55 | hull is 10 m (the prow dragon and the mizzen sail add the rest). **Main deck top 1.55**; the stern cabin sun deck is at 3.62. Masts reach 10.3 |
+| raft_house | 6412 | 6.21 × 4.23 × 6.22 | **deck 0.80**. Roof ridge 4.12 (the ridge cap tops out at 4.23), eaves 3.07, pitch about 24°, blue corrugated. Porch is at the front (+Z in Godot) |
+| raft_platform | 2636 | 4.20 × 0.75 × 4.00 | **deck 0.50**; the mooring bollards reach 0.75 |
+| fish_cage_ring | 3120 | 3.50 × 1.09 × 3.50 | float pipes at 0.0 to 0.2, top rail at 1.05 |
+| kayak | 944 | 2.75 × 0.51 × 3.80 | the paddle across the deck makes it 2.75 wide |
+| pearl | 1424 | 0.65 × 0.80 × 0.69 | orb Ø 0.55 centred at 0.40; `M_Pearl` is slightly emissive |
+| stalactite | 1440 | 1.45 × 2.50 × 1.44 | origin at the TOP centre; hangs down to −2.50 |
+| stalagmite | 1056 | 1.42 × 1.85 × 1.09 | |
+| crystal_cluster | 248 | 0.87 × 0.91 × 0.80 | `M_Crystal` is emissive |
+| pavilion_titop | 3520 | 5.30 × 4.46 × 4.84 | **floor 0.50**; steps at the front; the roof eave corners make it 5.3 wide |
+| dragon_head | 3638 | 2.52 × 2.01 × 2.41 | origin at the neck joint, the head reaches 2.41 forward |
+| dragon_body | 1724 | 1.40 × 1.36 × 1.67 | origin at the segment centre; joints at ±0.80 along the spine (the scales overlap a little further) |
+| dragon_tail | 2324 | 1.27 × 1.18 × 2.18 | origin at the joint; it extends backwards |
+| dragon_leg | 584 | 0.48 × 1.02 × 1.03 | origin at the hip (top); it reaches down 0.93 |
+| buoy | 572 | 1.00 × 1.50 × 0.98 | |
+| seagull | 456 | 0.92 × 0.25 × 0.64 | origin at the lowest point |
+| net_rack | 3040 | 3.10 × 2.21 × 1.59 | |
+| vietnam_flag | 1644 | 1.50 × 3.07 × 0.50 | two meshes: `vietnam_flag` (pole) and `Flag` (1.2 × 0.8 cloth, origin on the pole edge at the top, X/UV.x 0 → 1) |
+
+**Dragon chaining.** The head, body and tail share one spine axis: Blender Y at z = 0, which is Godot Z at y = 0.
+Place the head origin at a path point. Each body segment's centre goes 0.8 m behind the previous joint, and the tail origin
+goes on the last joint. The cross-section is Ø 1.3 with a flat walkable **saddle at +0.56 m above the spine**, the same
+height on the head's neck, every body segment and the start of the tail. The saddle is about 0.66 m wide at the segment centre
+and 0.46 m at the joints. Low gold spikes line both edges of the saddle, so the middle strip stays clear. The shingled scale plates cover
+only the flanks. The belly is gold.
 
 ## Checkpoint flag (shader route)
 
@@ -121,6 +154,8 @@ The mesh is `crab`, rigidly skinned. Every part is weighted 100 % to one bone. T
   The faceted parts (star points, drum stars, birds) are flat-shaded on purpose.
 - **Tilted trunks.** Tilted trunk and stem caps are flattened onto z = 0 after the build (`settle_on_ground`),
   so the lowest point of each prop is its origin height.
+- **Unique names in Blender.** The checkpoint and vietnam_flag both have a `Flag` object, so the build parks the other
+  one while exporting (`_claim_names`) and each glb gets a node named exactly `Flag`.
 - **`?` glyph.** The "?" is built from geometry (`motifs.question_mark`), so the build does not depend on a system font.
 - **Cloud.** The cloud is a union of spheres, voxel-remeshed, smoothed and then decimated to about 900 triangles.
 - **Godot materials.** Godot's `Fx.toonify` reads `albedo_color` and the material name. `Gold` and `Bronze` names get

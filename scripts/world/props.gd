@@ -41,6 +41,23 @@ const STANDINS := {
 	"bridge_plank": ["box", Vector3(1.0, 0.2, 1.0), Color("#a0703e")],
 	"drum_big": ["cyl", Vector3(4.0, 2.2, 4.0), Color("#b8863b")],
 	"cong_lang": ["box", Vector3(4, 4, 0.6), Color("#a8442e")],
+	"pearl": ["sphere", Vector3(0.55, 0.55, 0.55), Color("#f4f1ff")],
+	"junk_boat": ["box", Vector3(3.2, 1.0, 10), Color("#8a5a35")],
+	"raft_house": ["box", Vector3(6, 4.5, 6), Color("#6f8fb0")],
+	"raft_platform": ["box", Vector3(4, 0.5, 4), Color("#a0703e")],
+	"fish_cage_ring": ["cyl", Vector3(3.5, 0.2, 3.5), Color("#e0e0e0")],
+	"kayak": ["box", Vector3(0.7, 0.3, 3.8), Color("#ffb020")],
+	"stalactite": ["cone", Vector3(0.6, 2.5, 0.6), Color("#d8c39a")],
+	"stalagmite": ["cone", Vector3(0.7, 1.8, 0.7), Color("#d8c39a")],
+	"crystal_cluster": ["cone", Vector3(0.6, 0.8, 0.6), Color("#6ee8e0")],
+	"pavilion_titop": ["box", Vector3(4, 4.5, 4), Color("#c0503a")],
+	"dragon_head": ["box", Vector3(1.2, 1.2, 2.2), Color("#2fa56a")],
+	"dragon_body": ["cyl", Vector3(1.3, 1.6, 1.3), Color("#2fa56a")],
+	"dragon_tail": ["cone", Vector3(1.0, 2.0, 1.0), Color("#2fa56a")],
+	"buoy": ["cone", Vector3(0.8, 1.5, 0.8), Color("#e0452b")],
+	"seagull": ["box", Vector3(0.9, 0.1, 0.3), Color("#ffffff")],
+	"net_rack": ["box", Vector3(3, 2, 0.2), Color("#b9a05a")],
+	"vietnam_flag": ["cyl", Vector3(0.1, 3, 0.1), Color("#da251d")],
 }
 
 
@@ -125,9 +142,10 @@ static func add_box(parent: Node3D, size: Vector3, offset := Vector3.ZERO, layer
 	var box := BoxShape3D.new()
 	box.size = size
 	cs.shape = box
-	cs.position = offset
 	body.add_child(cs)
 	parent.add_child(body)
+	# the body sits at the offset so rotating it turns the box in place
+	body.position = offset
 	return body
 
 
@@ -140,9 +158,9 @@ static func add_cylinder(parent: Node3D, radius: float, height: float, offset :=
 	cyl.radius = radius
 	cyl.height = height
 	cs.shape = cyl
-	cs.position = offset
 	body.add_child(cs)
 	parent.add_child(body)
+	body.position = offset
 	return body
 
 

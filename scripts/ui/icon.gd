@@ -2,7 +2,7 @@ class_name HudIcon
 extends Control
 ## Hand-drawn HUD icons: the đồng xu coin, the bronze star, a red lantern and a health pip.
 
-enum Kind { COIN, STAR, LANTERN, HEART }
+enum Kind { COIN, STAR, LANTERN, HEART, PEARL }
 
 var kind := Kind.COIN
 var filled := true
@@ -13,12 +13,6 @@ func _init(k := Kind.COIN, s := 64.0) -> void:
 	kind = k
 	custom_minimum_size = Vector2(s, s)
 	size = Vector2(s, s)
-
-
-func _process(delta: float) -> void:
-	if kind == Kind.COIN:
-		spin += delta * 3.0
-		queue_redraw()
 
 
 func _draw() -> void:
@@ -46,6 +40,11 @@ func _draw() -> void:
 			_ellipse(c, Vector2(r * 0.34, r * 0.8), Color("#ff6a4a") if filled else Color(0.5, 0.5, 0.6, 0.5))
 			draw_rect(Rect2(c + Vector2(-r * 0.35, -r * 0.95), Vector2(r * 0.7, r * 0.2)), Color("#f2b33d"))
 			draw_rect(Rect2(c + Vector2(-r * 0.35, r * 0.75), Vector2(r * 0.7, r * 0.2)), Color("#f2b33d"))
+		Kind.PEARL:
+			draw_circle(c + Vector2(0, 3), r * 0.8, Color(0.05, 0.08, 0.2, 0.45))
+			draw_circle(c, r * 0.8, Color("#e9e4ff") if filled else Color(0.5, 0.5, 0.6, 0.5))
+			draw_circle(c - Vector2(r * 0.22, r * 0.22), r * 0.3, Color(1, 1, 1, 0.95))
+			draw_arc(c, r * 0.9, PI * 0.1, PI * 1.1, 24, UiKit.GOLD, 4.0)
 		Kind.HEART:
 			# a tiny Little Giant pebble: lime when full, grey when lost
 			var col := UiKit.LIME if filled else Color(0.35, 0.4, 0.5, 0.55)

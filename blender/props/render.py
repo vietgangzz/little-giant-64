@@ -93,6 +93,12 @@ def _bbox(col):
     return lo, hi
 
 
+VIEWS = {  # per-prop camera direction overrides for the sheets
+    "dragon_body": (1.0, -0.35, 0.45), "dragon_tail": (1.0, -0.2, 0.45), "dragon_leg": (1.0, -0.5, 0.2),
+    "dragon_head": (0.75, -1.0, 0.4), "stalactite": (0.62, -1.0, -0.1),
+}
+
+
 def render_tiles(collections, out_dir, view=(0.62, -1.0, 0.55), tile=TILE, suffix=""):
     os.makedirs(out_dir, exist_ok=True)
     cam, lab = setup() if "SheetCam" not in bpy.data.objects else (bpy.data.objects["SheetCam"],
@@ -108,7 +114,7 @@ def render_tiles(collections, out_dir, view=(0.62, -1.0, 0.55), tile=TILE, suffi
         lo, hi = _bbox(col)
         centre = (lo + hi) / 2
         radius = (hi - lo).length / 2
-        d = Vector(view).normalized()
+        d = Vector(VIEWS.get(col.name, view) if not suffix else view).normalized()
         fov = cam.data.angle
         dist = radius / math.sin(fov / 2) * 0.92
         cam.location = centre + d * dist

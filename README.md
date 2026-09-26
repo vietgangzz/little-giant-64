@@ -1,12 +1,19 @@
-# Little Giant 64 — Hạ Long Skies
+# Little Giant 64
 
-A Super-Mario-64-style 3D island platformer starring the VGANG **Little Giant**. The mascot is
+A Super-Mario-64-style 3D island platformer starring the VGANG **Little Giant**, who wears a
+Vietnamese flag cape. The mascot is
 modelled, rigged and animated in **Blender 5.2** from the approved brand vectors. The game runs in
 **Godot 4.7** (Forward+).
 
-Explore an open world of floating islands, rice terraces, limestone karsts and a lotus lagoon.
-Collect **8 bronze Đông Sơn stars** and 146+ **đồng xu** coins. Get every star and the great
-bronze drum rings out for **ALL STARS!**
+There are two levels, and a junk boat moored in each one sails you to the other. You can also
+travel from the pause menu.
+
+- **Hạ Long Skies** has floating islands, rice terraces, limestone karsts and a lotus lagoon. It
+  has 8 bronze Đông Sơn stars and 146 coins. Collect every star and the great bronze drum rings
+  out for **ALL STARS!**
+- **Vịnh Hạ Long (Hạ Long Bay)** is an emerald bay full of limestone towers with a floating fishing
+  village and Surprise Cave. A dragon circles the whole bay, and you can ride on its back. It has
+  6 stars and 8 dragon pearls.
 
 ![title](docs/shots/title.png)
 
@@ -44,6 +51,17 @@ Every 50 coins restores one pebble.
 | 7 | King of Crab Beach | Stomp all five crabs |
 | 8 | A Hundred Đồng Xu | Collect 100 coins |
 
+### Hạ Long Bay stars
+
+| | Star | Where |
+|---|---|---|
+| 1 | Fishing Village Rooftops | Walk the boardwalk, climb the crate onto the last north roof |
+| 2 | Heart of Surprise Cave | Climb the stalagmite pillars to the ledge at the back |
+| 3 | Fighting Cock Rocks | Wall-kick up between Hòn Trống and Hòn Mái |
+| 4 | Ti Tốp Summit | Ride the dragon up and jump off onto the pavilion |
+| 5 | Star on the Dragon's Head | Board at the "Dragon stop" jetty, then run up its back |
+| 6 | Eight Dragon Pearls | One is on the dragon, one rides the junk ferry; the star appears at the pier |
+
 ## How it's made
 
 ```
@@ -56,7 +74,8 @@ scripts/
   autoload/       Game (state, save, input map, CLI flags), Sound, Fx (toon materials + VFX)
   player/         Player (controller state machine), PlayerModel (anims, spring bones, squash)
   camera/         GameCamera: SM64-style follow cam
-  world/          World (the whole level, in code), Island (procedural @tool islands), Props
+  world/          World (Hạ Long Skies) and HalongWorld (Hạ Long Bay), both built in code; Island
+                  (procedural @tool islands and karsts), CaveDome (a hollow cave), Props
   objects/        coins, stars, blocks, spring drums, flags, crabs, crushers, boats, lotus, jelly…
   ui/             HUD, title, pause, rainbow headlines
   qa/bot.gd       plays every star route with real inputs
@@ -90,6 +109,7 @@ godot --headless --path . --import      # REQUIRED: a running game reads the old
 # every star route, played by the bot with real inputs (fast: fixed timestep)
 godot --headless --path . --fixed-fps 60 -- --bot=all
 godot --headless --path . --fixed-fps 60 -- --bot=karst --trace     # one route, with a state trace
+godot --headless --path . --fixed-fps 60 -- --level=halong --bot=hl_village,hl_cave,hl_trongmai,hl_dragon,hl_titop,hl_pearls
 
 godot --path . -- --tour=/tmp/tour                  # screenshots of every area
 godot --path . -- --start --warp=pagoda             # jump straight to a star (ids in Game.STARS)

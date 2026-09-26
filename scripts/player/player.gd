@@ -592,7 +592,7 @@ func is_stomping_from_above(enemy_top: float) -> bool:
 
 
 func damage(from: Vector3, amount := 1) -> void:
-	if _invulnerable > 0.0 or state == S.RESPAWN or Game.in_cutscene:
+	if _invulnerable > 0.0 or state == S.RESPAWN or Game.in_cutscene or Game.args.has("god"):
 		return
 	Game.hurt(amount)
 	_invulnerable = INVULNERABLE

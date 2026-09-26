@@ -16,24 +16,43 @@ const COIN_STAR_AT := 100
 
 ## The eight bronze stars. `hint` is shown on the pause map; `where` is filled in by the world.
 const STARS := [
-	{"id": "terraces", "en": "Top of the Rice Terraces", "vi": "Đỉnh Ruộng Bậc Thang",
+	{"id": "terraces", "level": "skies", "en": "Top of the Rice Terraces", "vi": "Đỉnh Ruộng Bậc Thang",
 		"hint_en": "Climb the terraces east of home.", "hint_vi": "Leo ruộng bậc thang phía đông."},
-	{"id": "lanterns", "en": "Eight Red Lanterns", "vi": "Tám Chiếc Đèn Lồng",
+	{"id": "lanterns", "level": "skies", "en": "Eight Red Lanterns", "vi": "Tám Chiếc Đèn Lồng",
 		"hint_en": "Find all 8 red lanterns. The star waits by the pagoda pond.", "hint_vi": "Tìm đủ 8 đèn lồng đỏ. Sao chờ ở hồ chùa."},
-	{"id": "pagoda", "en": "Roof of the One Pillar Pagoda", "vi": "Mái Chùa Một Cột",
+	{"id": "pagoda", "level": "skies", "en": "Roof of the One Pillar Pagoda", "vi": "Mái Chùa Một Cột",
 		"hint_en": "Bamboo steps and a drum lead to the roof.", "hint_vi": "Nhảy ống tre và trống để lên mái."},
-	{"id": "karst", "en": "Karst Summit", "vi": "Đỉnh Núi Đá Vôi",
+	{"id": "karst", "level": "skies", "en": "Karst Summit", "vi": "Đỉnh Núi Đá Vôi",
 		"hint_en": "Wall-kick between the limestone towers.", "hint_vi": "Đạp tường giữa các cột đá vôi."},
-	{"id": "lagoon", "en": "Across the Lotus Lagoon", "vi": "Qua Đầm Sen",
+	{"id": "lagoon", "level": "skies", "en": "Across the Lotus Lagoon", "vi": "Qua Đầm Sen",
 		"hint_en": "Ride the sampans; lotus leaves sink!", "hint_vi": "Đi thuyền; lá sen sẽ chìm!"},
-	{"id": "waterfall", "en": "Behind the Waterfall", "vi": "Sau Thác Nước",
+	{"id": "waterfall", "level": "skies", "en": "Behind the Waterfall", "vi": "Sau Thác Nước",
 		"hint_en": "Something glitters behind the falls.", "hint_vi": "Có gì lấp lánh sau thác."},
-	{"id": "crabs", "en": "King of Crab Beach", "vi": "Vua Bãi Cua",
+	{"id": "crabs", "level": "skies", "en": "King of Crab Beach", "vi": "Vua Bãi Cua",
 		"hint_en": "Stomp all the crabs on the beach.", "hint_vi": "Dẫm bẹp hết cua trên bãi biển."},
-	{"id": "coins", "en": "A Hundred Đồng Xu", "vi": "Một Trăm Đồng Xu",
+	{"id": "coins", "level": "skies", "en": "A Hundred Đồng Xu", "vi": "Một Trăm Đồng Xu",
 		"hint_en": "Collect 100 coins.", "hint_vi": "Nhặt 100 đồng xu."},
+	# ---- Vịnh Hạ Long
+	{"id": "halong_village", "level": "halong", "en": "Fishing Village Rooftops", "vi": "Mái Nhà Làng Chài",
+		"hint_en": "Hop the raft houses of the floating village.", "hint_vi": "Nhảy qua các nhà bè của làng chài."},
+	{"id": "halong_cave", "level": "halong", "en": "Heart of Surprise Cave", "vi": "Lòng Hang Sửng Sốt",
+		"hint_en": "Climb the stalagmites deep inside the cave.", "hint_vi": "Leo măng đá sâu trong hang."},
+	{"id": "halong_trongmai", "level": "halong", "en": "Fighting Cock Rocks", "vi": "Đỉnh Hòn Trống Mái",
+		"hint_en": "Wall-kick up between the two rocks.", "hint_vi": "Đạp tường giữa hai hòn đá."},
+	{"id": "halong_titop", "level": "halong", "en": "Ti Tốp Summit", "vi": "Đỉnh Ti Tốp",
+		"hint_en": "Only the dragon flies that high.", "hint_vi": "Chỉ có rồng bay cao đến thế."},
+	{"id": "halong_dragon", "level": "halong", "en": "Star on the Dragon's Head", "vi": "Sao Trên Đầu Rồng",
+		"hint_en": "Board the dragon and run up its back.", "hint_vi": "Lên lưng rồng và chạy tới đầu."},
+	{"id": "halong_pearls", "level": "halong", "en": "Eight Dragon Pearls", "vi": "Tám Viên Ngọc Rồng",
+		"hint_en": "The dragon scattered 8 pearls. The star waits at the pier.", "hint_vi": "Rồng rải 8 viên ngọc. Sao chờ ở bến."},
 ]
 
+const LEVELS := {
+	"skies": {"en": "Hạ Long Skies", "vi": "Bầu Trời Hạ Long"},
+	"halong": {"en": "Hạ Long Bay", "vi": "Vịnh Hạ Long"},
+}
+
+var level := "skies"
 var coins := 0
 var coin_total := 0 ## set by the world once every coin is placed
 var red_coins := 0
@@ -49,7 +68,8 @@ var cape := true
 var mouse_sensitivity := 1.0
 var best_time := 0.0
 var play_time := 0.0
-var finished := false
+var finished := false ## the current level's finale has played this session
+var finished_levels: Dictionary = {}
 var paused := false
 var in_cutscene := false
 
@@ -71,6 +91,8 @@ func _ready() -> void:
 	load_save()
 	if args.has("lang"):
 		lang = String(args["lang"])
+	if args.has("level"):
+		level = String(args["level"])
 
 
 func is_test_run() -> bool:
@@ -105,6 +127,36 @@ func has_star(id: String) -> bool:
 
 func star_count() -> int:
 	return stars.size()
+
+
+func level_stars(lv := "") -> Array:
+	var l := level if lv == "" else lv
+	return STARS.filter(func(s): return s["level"] == l)
+
+
+func level_star_total(lv := "") -> int:
+	return level_stars(lv).size()
+
+
+func level_star_count(lv := "") -> int:
+	return level_stars(lv).filter(func(s): return stars.has(s["id"])).size()
+
+
+func level_name(lv := "") -> String:
+	return LEVELS[level if lv == "" else lv][lang]
+
+
+## Leaves for another level: session coins and lanterns start over, stars are kept.
+func travel(to: String) -> void:
+	level = to
+	coins = 0
+	red_coins = 0
+	taken.clear()
+	hp = MAX_HP
+	finished = finished_levels.has(to)
+	in_cutscene = false
+	get_tree().paused = false
+	get_tree().reload_current_scene()
 
 
 func collect_star(id: String) -> void:
@@ -157,7 +209,7 @@ func save() -> void:
 	var data := {
 		"stars": stars.keys(), "lang": lang, "music": music_volume, "sfx": sfx_volume,
 		"invert_x": invert_x, "invert_y": invert_y, "cape": cape, "sens": mouse_sensitivity,
-		"best_time": best_time,
+		"best_time": best_time, "level": level, "finished_levels": finished_levels.keys(),
 	}
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if f:
@@ -180,6 +232,11 @@ func load_save() -> void:
 	cape = data.get("cape", cape)
 	mouse_sensitivity = data.get("sens", mouse_sensitivity)
 	best_time = data.get("best_time", best_time)
+	level = data.get("level", level)
+	if not LEVELS.has(level):
+		level = "skies"
+	for l in data.get("finished_levels", []):
+		finished_levels[String(l)] = true
 
 
 func reset_progress() -> void:

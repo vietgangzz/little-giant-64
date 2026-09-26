@@ -28,7 +28,7 @@ func _ready() -> void:
 	v.add_theme_constant_override("separation", -26)
 	root.add_child(v)
 	_row = UiKit.rainbow("LITTLE GIANT 64", 150, v, 0.06, true, 13)
-	var sub := UiKit.label(Game.t("Hạ Long Skies", "Bầu Trời Hạ Long"), 46, Color("#fffbe8"), 10)
+	var sub := UiKit.label(Game.level_name(), 46, Color("#fffbe8"), 10)
 	sub.name = "Sub"
 	v.add_child(sub)
 	_menu = VBoxContainer.new()
@@ -75,7 +75,7 @@ func _build_menu() -> void:
 
 
 func _rebuild() -> void:
-	(root.find_child("Sub", true, false) as Label).text = Game.t("Hạ Long Skies", "Bầu Trời Hạ Long")
+	(root.find_child("Sub", true, false) as Label).text = Game.level_name()
 	_build_menu()
 
 

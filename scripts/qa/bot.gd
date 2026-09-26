@@ -54,6 +54,40 @@ var ROUTES := {
 	"coins": [
 		["collect_coins", 100], ["wait", 1.2], ["reach_star", "coins"], ["stop"], ["wait", 5.0], ["star", "coins"],
 	],
+	"hl_village": [
+		["warp", Vector3(12.5, 1.3, 1.0)], ["hop", Vector3(18.0, 0, -0.5), 3.2, 0.8], ["stop"], ["wait", 0.2],
+		["goto", Vector3(20.5, 0, -1.2), 0.5], ["goto", Vector3(40.6, 0, -1.2), 0.5], ["stop"], ["wait", 0.3],
+		["hop", Vector3(39.2, 0, -2.05), 1.8, 0.5], ["stop"], ["wait", 0.3],
+		["leap", Vector3(38.7, 0, -4.4), 0.35, true], ["goto", Vector3(37.8, 0, -5.83), 0.35], ["stop"], ["wait", 5.0], ["star", "halong_village"],
+	],
+	"hl_cave": [
+		["warp", Vector3(-23.5, 1.4, -23.5)], ["hop", Vector3(-27.5, 0, -27.0), 2.4, 0.5], ["stop"], ["wait", 0.3],
+		["hop", Vector3(-30.8, 0, -25.2), 3.0, 0.55], ["stop"], ["wait", 0.3],
+		["hop", Vector3(-34.0, 0, -28.0), 3.0, 0.55], ["stop"], ["wait", 0.3],
+		["hop", Vector3(-33.2, 0, -32.4), 3.3, 0.55], ["stop"], ["wait", 0.3],
+		["hop", Vector3(-29.5, 0, -36.5), 4.4, 0.7], ["stop"], ["wait", 5.0], ["star", "halong_cave"],
+	],
+	"hl_trongmai": [
+		["warp", Vector3(-24.8, 1.2, 28.5)], ["goto", Vector3(-24.8, 0, 25.0), 0.4], ["stop"], ["wait", 0.3],
+		["wallclimb", Vector3(-1, 0, 0), 9.6, Vector3(-22.2, 0, 25.0)], ["stop"], ["wait", 0.5],
+		["goto", Vector3(-22.2, 0, 25.0), 0.3], ["stop"], ["wait", 0.3],
+		["leap", Vector3(-27.4, 0, 25.0), 0.35, true], ["goto", Vector3(-27.4, 0, 25.0), 0.3], ["stop"], ["wait", 5.0], ["star", "halong_trongmai"],
+	],
+	"hl_dragon": [
+		["warp", Vector3(7.2, 1.4, 1.0)], ["board_dragon"], ["run_to_head", 40.0], ["wait", 5.0], ["star", "halong_dragon"],
+	],
+	"hl_titop": [
+		["warp", Vector3(7.2, 1.4, 1.0)], ["board_dragon"], ["ride_near", Vector3(28, 0, -42), 7.5, 18.5],
+		["hop", Vector3(29.3, 0, -41.2), 20.0, 0.7], ["goto", Vector3(29.3, 0, -41.2), 0.4], ["stop"], ["wait", 5.0], ["star", "halong_titop"],
+	],
+	"hl_pearls": [
+		["collect_red"], ["wait", 1.5], ["warp", Vector3(0, 1.4, 1.5)], ["goto", Vector3(0, 0, -3.5), 0.5], ["stop"], ["wait", 5.0], ["star", "halong_pearls"],
+	],
+	"bridges": [
+		["warp", Vector3(-11.5, 2.6, -4.2)], ["goto", Vector3(-18.6, 0, -5.7), 0.4], ["leap", Vector3(-22.6, 0, -6.4)], ["goto", Vector3(-28.5, 0, -7.6), 0.6],
+		["stop"], ["check_y", 1.8],
+		["warp", Vector3(-4.4, 2.6, -12.0)], ["goto", Vector3(-6.0, 0, -17.0), 0.4], ["goto", Vector3(-11.2, 0, -35.0), 0.6], ["stop"], ["check_y", 1.2],
+	],
 	"lanterns": [
 		["collect_red"], ["wait", 1.5], ["warp", Vector3(-38.5, 3.0, -7.5)], ["goto", Vector3(-38.5, 0, -10.5), 0.5], ["stop"], ["wait", 5.0], ["star", "lanterns"],
 	],
@@ -173,6 +207,50 @@ func _step(step: Array):
 				if (n as Star).id == step[1] and n.visible:
 					return await _hop((n as Node3D).global_position, 1.2, 0.5)
 			return false
+		"wallclimb":
+			return await _wallclimb(step[1], step[2], step[3] if step.size() > 3 else Vector3.INF)
+		"board_dragon":
+			return await _board_dragon()
+		"run_to_head":
+			var dr := get_tree().get_first_node_in_group("dragon") as Dragon
+			var t := 0.0
+			while t < float(step[1]):
+				await get_tree().physics_frame
+				t += get_physics_process_delta_time()
+				_trace()
+				if Game.in_cutscene:
+					player.bot_world_dir = Vector3.ZERO
+					return true
+				# follow the spine: aim at the segment just ahead of the one underfoot
+				var near := 0
+				for i in dr.get_child_count():
+					if (dr.get_child(i) as Node3D).global_position.distance_to(player.global_position) < (dr.get_child(near) as Node3D).global_position.distance_to(player.global_position):
+						near = i
+				var aim := (dr.get_child(maxi(near - 1, 0)) as Node3D).global_position
+				if near <= 1:
+					aim = dr.head.global_transform * Vector3(0, 0, -0.9)
+				if trace and Engine.get_physics_frames() % 6 == 0:
+					var sg := dr.get_child(near) as Node3D
+					print("   seg %d at %s  local player %s" % [near, sg.global_position, sg.global_transform.affine_inverse() * player.global_position])
+				var d := (aim - player.global_position) * Vector3(1, 0, 1)
+				player.bot_world_dir = d.normalized() * clampf(d.length() / 1.5, 0.3, 0.6)
+				if player.state == Player.S.RESPAWN:
+					return false
+			return false
+		"ride_near":
+			var t := 0.0
+			var target: Vector3 = step[1]
+			player.bot_world_dir = Vector3.ZERO
+			while t < 60.0:
+				await get_tree().physics_frame
+				t += get_physics_process_delta_time()
+				_trace()
+				var d := Vector2(target.x - player.global_position.x, target.z - player.global_position.z).length()
+				if d < float(step[2]) and player.global_position.y > float(step[3]):
+					return true
+				if player.state == Player.S.RESPAWN:
+					return false
+			return false
 		"back":
 			# step back from the edge of a pillar, away from the next target, to get a run-up
 			var away: Vector3 = (player.global_position - (step[1] as Vector3)) * Vector3(1, 0, 1)
@@ -198,6 +276,10 @@ func _step(step: Array):
 			var ok := player.is_on_floor() and player.global_position.y > float(step[1])
 			_log("  on top (y > %s): %s  y=%.2f" % [step[1], ok, player.global_position.y])
 			return ok
+		"check_y":
+			await _wait(0.4)
+			_log("  y=%.2f (need > %s)" % [player.global_position.y, step[1]])
+			return player.global_position.y > float(step[1])
 		"check_red":
 			return Game.red_coins >= int(step[1])
 		"star":
@@ -332,6 +414,57 @@ func _hop(target: Vector3, jump_dist: float, speed := 1.0, follow: Node3D = null
 				return true
 		if player.state == Player.S.RESPAWN:
 			return false
+	return false
+
+
+## Wall-kicks up between two walls: jump toward `dir`, then kick every time we slide.
+func _wallclimb(dir: Vector3, height: float, land := Vector3.INF) -> bool:
+	player.bot_world_dir = dir
+	player.bot_jump = true
+	player.bot_jump_hold = true
+	var t := 0.0
+	var push := dir
+	while t < 12.0:
+		await get_tree().physics_frame
+		t += get_physics_process_delta_time()
+		_trace()
+		if player.state == Player.S.WALL_SLIDE:
+			player.bot_jump = true
+			player.bot_jump_hold = true
+			# the kick sends us back across the gap
+			push = -push
+		player.bot_world_dir = push
+		if land != Vector3.INF and player.global_position.y > height and player.state == Player.S.AIR:
+			var d := (land - player.global_position) * Vector3(1, 0, 1)
+			player.bot_world_dir = d.normalized() * clampf(d.length(), 0.0, 1.0)
+		if player.is_on_floor() and player.global_position.y > height:
+			player.bot_world_dir = Vector3.ZERO
+			return true
+		if player.is_on_floor() and t > 0.5:
+			push = dir
+			player.bot_world_dir = dir
+			player.bot_jump = true
+			player.bot_jump_hold = true
+		if player.state == Player.S.RESPAWN:
+			return false
+	return false
+
+
+## Waits at the shore for the dragon's back to pass, then hops onto the nearest segment.
+func _board_dragon() -> bool:
+	var dr := get_tree().get_first_node_in_group("dragon") as Dragon
+	var t := 0.0
+	while t < 90.0:
+		await get_tree().physics_frame
+		t += get_physics_process_delta_time()
+		for i in range(4, dr.get_child_count() - 2):
+			var seg := dr.get_child(i) as Node3D
+			var d := Vector2(seg.global_position.x - player.global_position.x, seg.global_position.z - player.global_position.z).length()
+			if d < 4.6 and seg.global_position.y < 1.6:
+				var ok := await _hop(seg.global_position, 4.0, 0.8, seg)
+				player.bot_world_dir = Vector3.ZERO
+				await _wait(0.3)
+				return ok and player.global_position.y > 0.5
 	return false
 
 

@@ -78,6 +78,10 @@ func _rebuild() -> void:
 	_add(Game.t("Invert camera X: ", "Đảo camera X: ") + onoff.call(Game.invert_x), func(): Game.invert_x = not Game.invert_x)
 	_add(Game.t("Invert camera Y: ", "Đảo camera Y: ") + onoff.call(Game.invert_y), func(): Game.invert_y = not Game.invert_y)
 	_add(Game.t("Language: English", "Ngôn ngữ: Tiếng Việt"), Game.toggle_language)
+	var other := "halong" if Game.level == "skies" else "skies"
+	_add(Game.t("Sail to ", "Đi ") + Game.level_name(other), func():
+		close()
+		Game.travel(other))
 	_add(Game.t("Quit to title", "Về màn hình chính"), func():
 		close()
 		get_tree().call_group("main", "back_to_title"))
@@ -85,8 +89,8 @@ func _rebuild() -> void:
 	var stars := root.find_child("Stars", true, false) as VBoxContainer
 	for c in stars.get_children():
 		c.queue_free()
-	stars.add_child(UiKit.label(Game.t("Bronze Stars  %d / %d", "Sao Đồng  %d / %d") % [Game.star_count(), Game.STARS.size()], 52, UiKit.GOLD, 10))
-	for s in Game.STARS:
+	stars.add_child(UiKit.label("%s   %d / %d" % [Game.level_name(), Game.level_star_count(), Game.level_star_total()], 52, UiKit.GOLD, 10))
+	for s in Game.level_stars():
 		var row := HBoxContainer.new()
 		row.add_theme_constant_override("separation", 14)
 		var icon := HudIcon.new(HudIcon.Kind.STAR, 44)
@@ -102,7 +106,8 @@ func _rebuild() -> void:
 		col.add_child(hint)
 		row.add_child(col)
 		stars.add_child(row)
-	var red := UiKit.label(Game.t("Red lanterns  %d / 8    ·    Coins  %d", "Đèn lồng đỏ  %d / 8    ·    Đồng xu  %d") % [Game.red_coins, Game.coins], 26, Color("#ffc9b8"), 6, false)
+	var what := Game.t("Dragon pearls", "Ngọc rồng") if Game.level == "halong" else Game.t("Red lanterns", "Đèn lồng đỏ")
+	var red := UiKit.label("%s  %d / 8    ·    %s  %d    ·    %s  %d / %d" % [what, Game.red_coins, Game.t("Coins", "Đồng xu"), Game.coins, Game.t("All stars", "Tổng sao"), Game.star_count(), Game.STARS.size()], 26, Color("#ffc9b8"), 6, false)
 	red.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	stars.add_child(red)
 

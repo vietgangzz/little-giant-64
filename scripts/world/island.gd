@@ -5,9 +5,10 @@ extends StaticBody3D
 ## sides that run down into the sea (or taper to a rocky point when `floating`). The same
 ## generator makes grass islands, rice-terrace tiers, sand bars and limestone karst towers.
 
-enum Kind { GRASS, SAND, STONE, PADDY }
+enum Kind { GRASS, SAND, STONE, PADDY, KARST, CAVE }
 
 const SHADER := preload("res://shaders/island.gdshader")
+const CAVE_SHADER := preload("res://shaders/island_cave.gdshader")
 
 @export var radius := 8.0: set = _set_radius
 @export var top := 2.0: set = _set_top
@@ -73,19 +74,20 @@ static func material_for(k: Kind) -> ShaderMaterial:
 	if _materials.has(k):
 		return _materials[k]
 	var m := ShaderMaterial.new()
-	m.shader = SHADER
+	m.shader = CAVE_SHADER if k == Kind.CAVE else SHADER
 	m.set_shader_parameter("kind", int(k))
 	m.set_shader_parameter("spec_strength", 0.0)
 	m.set_shader_parameter("rim_strength", 0.12)
 	m.set_shader_parameter("shadow_floor", 0.5)
 	var tex := NoiseTexture2D.new()
 	var n := FastNoiseLite.new()
-	n.frequency = 0.02
-	n.fractal_octaves = 3
+	n.frequency = 0.012
+	n.fractal_octaves = 4
 	tex.noise = n
 	tex.seamless = true
-	tex.width = 256
-	tex.height = 256
+	tex.width = 512
+	tex.height = 512
+	tex.generate_mipmaps = true
 	m.set_shader_parameter("noise", tex)
 	_materials[k] = m
 	return m

@@ -7,6 +7,7 @@ static var _chain := 0
 static var _chain_time := 0
 
 var red := false
+var prop_override := "" ## e.g. "pearl" for Hạ Long's dragon pearls
 var value := 1
 var _t := 0.0
 var _visual: Node3D
@@ -33,7 +34,7 @@ func _ready() -> void:
 	cs.shape = s
 	cs.position.y = 0.35
 	add_child(cs)
-	_visual = Props.make("coin_red" if red else "coin", true)
+	_visual = Props.make(prop_override if prop_override != "" else ("coin_red" if red else "coin"), true)
 	add_child(_visual)
 	if red:
 		_visual.scale = Vector3.ONE * 1.1

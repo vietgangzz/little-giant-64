@@ -106,7 +106,7 @@ func _build_red() -> void:
 	red_box.add_theme_constant_override("separation", 10)
 	red_box.modulate.a = 0.0
 	root.add_child(red_box)
-	red_box.add_child(HudIcon.new(HudIcon.Kind.LANTERN, 60))
+	red_box.add_child(HudIcon.new(HudIcon.Kind.PEARL if Game.level == "halong" else HudIcon.Kind.LANTERN, 60))
 	red_label = UiKit.label("0 / 8", 48, Color("#ffd0c4"), 10)
 	red_box.add_child(red_label)
 
@@ -115,7 +115,7 @@ func _process(delta: float) -> void:
 	_t += delta
 	_coin_shown = move_toward(_coin_shown, Game.coins, maxf(40.0 * delta, 1.0))
 	coin_label.text = "× %d  / %d" % [int(_coin_shown), Game.coin_total] if Game.coin_total > 0 else "× %d" % int(_coin_shown)
-	star_label.text = "× %d  / %d" % [Game.star_count(), Game.STARS.size()]
+	star_label.text = "× %d  / %d" % [Game.level_star_count(), Game.level_star_total()]
 	_coin_bump = move_toward(_coin_bump, 0.0, delta * 5.0)
 	_star_bump = move_toward(_star_bump, 0.0, delta * 2.0)
 	coin_label.scale = Vector2.ONE * (1.0 + _coin_bump * 0.12)
@@ -188,7 +188,7 @@ func star_banner(id: String, first: bool) -> void:
 	tw.tween_callback(_clear_banner)
 
 
-func all_stars_banner() -> void:
+func all_stars_banner(text := "ALL STARS!") -> void:
 	_clear_banner()
 	var v := VBoxContainer.new()
 	v.anchor_left = 0.5
@@ -198,7 +198,7 @@ func all_stars_banner() -> void:
 	v.offset_top = 70
 	v.alignment = BoxContainer.ALIGNMENT_CENTER
 	banner.add_child(v)
-	_banner_row = UiKit.rainbow("ALL STARS!", 170, v, 0.07)
+	_banner_row = UiKit.rainbow(text, 170 if text.length() <= 11 else 120, v, 0.07)
 	var sub := UiKit.label("★ %d %s ★" % [Game.coins, Game.t("coins!", "đồng xu!")], 48, Color("#fff1b8"), 10)
 	v.add_child(sub)
 	sub.modulate.a = 0.0
@@ -222,7 +222,7 @@ func ending_card() -> void:
 	var title := UiKit.label("LITTLE GIANT 64", 118, Color("#f5f1e6"), 0)
 	title.label_settings.shadow_size = 0
 	ending.add_child(title)
-	var sub := UiKit.label(Game.t("Hạ Long Skies", "Bầu Trời Hạ Long"), 40, UiKit.LIME, 0)
+	var sub := UiKit.label(Game.level_name(), 40, UiKit.LIME, 0)
 	ending.add_child(sub)
 	var line := ColorRect.new()
 	line.color = Color(1, 1, 1, 0.35)
@@ -232,7 +232,7 @@ func ending_card() -> void:
 	ending.add_child(UiKit.label(Game.t("Made with ♥ by VG TEAM · Blender · Godot", "Làm bằng ♥ bởi VG TEAM · Blender · Godot"), 34, Color(0.92, 0.92, 0.9), 0, false))
 	var mins := int(Game.play_time) / 60
 	var secs := int(Game.play_time) % 60
-	ending.add_child(UiKit.label("%d ★   ·   %d %s   ·   %d:%02d" % [Game.star_count(), Game.coins, Game.t("coins", "đồng xu"), mins, secs], 30, Color(0.75, 0.78, 0.82), 0, false))
+	ending.add_child(UiKit.label("%d ★   ·   %d %s   ·   %d:%02d" % [Game.level_star_count(), Game.coins, Game.t("coins", "đồng xu"), mins, secs], 30, Color(0.75, 0.78, 0.82), 0, false))
 	var hint := UiKit.label(Game.t("Press Jump to keep exploring", "Bấm Nhảy để tiếp tục khám phá"), 26, Color(0.6, 0.65, 0.7), 0, false)
 	ending.add_child(hint)
 	ending.modulate.a = 0.0

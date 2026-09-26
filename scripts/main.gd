@@ -14,7 +14,7 @@ var _title_angle := 0.0
 
 func _ready() -> void:
 	add_to_group("main")
-	world = World.new()
+	world = HalongWorld.new() if Game.level == "halong" else World.new()
 	world.name = "World"
 	add_child(world)
 	player = Player.new()
@@ -52,7 +52,7 @@ func _ready() -> void:
 func _show_title() -> void:
 	playing = false
 	hud.visible = false
-	player.teleport(Vector3(0, 4.7, -6.5), Vector3.BACK)
+	player.teleport(world.title_focus + Vector3(0, 0.1, 0), Vector3.BACK)
 	player.lock(true)
 	Game.in_cutscene = true
 	camera.cutscene = true
@@ -75,7 +75,7 @@ func _process(delta: float) -> void:
 			print("fps ", Engine.get_frames_per_second(), "  draw calls ", RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME), "  prims ", RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_PRIMITIVES_IN_FRAME))
 	if not playing and title and title.visible:
 		_title_angle += delta * 0.12
-		var c := Vector3(0, 4.6, -6.5)
+		var c := world.title_focus
 		var a := sin(_title_angle) * 0.7
 		camera.global_position = c + Vector3(sin(a) * 6.2, 1.5 + sin(_title_angle * 0.7) * 0.3, cos(a) * 6.2)
 		camera.look_at(c + Vector3(0, 1.45, 0))
@@ -101,10 +101,10 @@ func _begin(instant: bool) -> void:
 	camera.cutscene = false
 	camera.snap_behind()
 	playing = true
-	Sound.music("world", 1.0)
+	Sound.music(world.music, 1.0)
 	if not instant:
 		hud.fade(0.0, 0.6)
-		hud.toast(Game.t("Find the 8 bronze stars of Hạ Long Skies!", "Tìm 8 ngôi sao đồng của Bầu Trời Hạ Long!"), 4.0)
+		hud.toast(Game.t("Find the %d bronze stars of %s!", "Tìm %d ngôi sao đồng của %s!") % [Game.level_star_total(), Game.level_name()], 4.0)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -119,7 +119,7 @@ func resume_after_ending() -> void:
 	camera.release()
 	player.lock(false)
 	Game.in_cutscene = false
-	Sound.music("world", 1.5)
+	Sound.music(world.music, 1.5)
 
 
 func back_to_title() -> void:
@@ -164,18 +164,7 @@ func _shots(spec: String) -> void:
 ## Flies the camera through a list of framings and saves one image each.
 func _tour(dir: String) -> void:
 	DirAccess.make_dir_recursive_absolute(dir)
-	var views := [
-		["home", Vector3(14, 12, 22), Vector3(0, 2, -2)],
-		["drum", Vector3(4, 7.5, 2), Vector3(0, 4, -6.5)],
-		["terraces", Vector3(28, 14, 16), Vector3(49, 7, -9)],
-		["waterfall", Vector3(28, 7, -16), Vector3(28, 6, -38)],
-		["pagoda", Vector3(-24, 9, 2), Vector3(-41, 5, -16)],
-		["karsts", Vector3(0, 14, -30), Vector3(-15, 12, -54)],
-		["beach", Vector3(-22, 10, 18), Vector3(-40, 1, 36)],
-		["lagoon", Vector3(22, 10, 8), Vector3(40, 1, 35)],
-		["overview", Vector3(60, 70, 90), Vector3(0, 0, -5)],
-		["behind_hero", Vector3.ZERO, Vector3.ZERO],
-	]
+	var views := world.tour_views()
 	await get_tree().create_timer(1.5).timeout
 	for v in views:
 		if v[0] == "behind_hero":

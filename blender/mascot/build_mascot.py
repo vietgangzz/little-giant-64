@@ -98,9 +98,9 @@ def build_materials():
     MATS["M_Foot"] = make_material("M_Foot", "#B9D83A", 0.6)
     MATS["M_Eye"] = make_material("M_Eye", "#234D37", 0.25, spec=0.7)
     MATS["M_Ray"] = make_material("M_Ray", "#FF7447", 0.45)
-    MATS["M_Cape"] = make_material("M_Cape", "#E8583A", 0.7)
-    MATS["M_Gold"] = make_material("M_Gold", "#F2B33D", 0.3)
-    MATS["M_Gold"].node_tree.nodes["Principled BSDF"].inputs["Metallic"].default_value = 0.6
+    # the cape is the Vietnamese flag: official red with the yellow star
+    MATS["M_Cape"] = make_material("M_Cape", "#DA251D", 0.7)
+    MATS["M_FlagStar"] = make_material("M_FlagStar", "#FFFF00", 0.5)
 
 
 def new_object(name, mesh):
@@ -488,15 +488,16 @@ def build_foot(name, centre):
 # body still dominates from the (usual) behind-the-hero camera.
 CAPE_COL_SPACING = 0.115
 CAPE_COLS = {"R": -CAPE_COL_SPACING, "M": 0.0, "L": CAPE_COL_SPACING}
-CAPE_HALF_W = (0.17, 0.24)  # half width at the top edge, at the hem
+CAPE_HALF_W = (0.19, 0.21)  # half width at the top edge, at the hem (flag-like, near-rectangular)
 
 
 def cape_top(x):
-    return 0.80 - 0.04 * (x / CAPE_HALF_W[0]) ** 2
+    return 0.80 - 0.02 * (x / CAPE_HALF_W[0]) ** 2
 
 
 def cape_bottom(x):
-    return 0.38 + 0.02 * (x / CAPE_HALF_W[1]) ** 2
+    # straight hem with a gentle flutter wave
+    return 0.38 + 0.010 * math.sin(math.pi * x / CAPE_HALF_W[1])
 
 
 def back_surface_y(body_bvh, x, z):
@@ -507,7 +508,7 @@ def back_surface_y(body_bvh, x, z):
 class CapeShape:
     """Draped cape surface: follows the back, then hangs clear of the belly."""
 
-    NU, NV = 11, 14
+    NU, NV = 13, 16
 
     def __init__(self, body_bvh):
         self.bvh = body_bvh
@@ -528,8 +529,9 @@ class CapeShape:
         gap = 0.002 + 0.028 * min(1.0, v / 0.35)
         flare = 0.035 * v * v
         y = ymax + gap + flare
-        # slight wrap at the sides
+        # slight wrap at the sides, and a soft flag ripple toward the hem
         y -= 0.03 * abs(u) ** 3 * (1.0 - v * 0.5)
+        y += 0.012 * v ** 1.5 * math.sin(math.pi * 1.25 * u)
         return Vector((x, y, z))
 
 
@@ -561,7 +563,7 @@ def build_cape(body_ob):
         bmesh.ops.reverse_faces(bm, faces=bm.faces)
     for f in bm.faces:
         f.smooth = True
-    ob = bm_to_object("LG_Cape", bm, ["M_Cape", "M_Gold"])
+    ob = bm_to_object("LG_Cape", bm, ["M_Cape", "M_FlagStar"])
     sol = ob.modifiers.new("Solidify", "SOLIDIFY")
     sol.thickness = 0.014
     sol.offset = -1.0
@@ -574,16 +576,35 @@ def build_cape(body_ob):
     bpy.data.meshes.remove(old)
     bm_body.free()
 
-    # emblem: 12-point Dong Son star inside a thin ring, conformed to the cape
-    emb = build_star_emblem(ob, centre=(0.0, 0.595))
+    # Vietnamese flag star: yellow, 5 points, pointing up, ~60 % of the cape height
+    emb = build_flag_star(ob, centre=(0.0, 0.585), r_out=0.126)
     return ob, emb, shape
 
 
-def build_star_emblem(cape_ob, centre, n_pts=12, r_out=0.050, r_in=0.031, ring=(0.058, 0.067)):
+def star_outline(cx, cz, r_out, points=5, per_edge=6):
+    """Regular star polygon (point up), each straight edge subdivided so the
+    decal can hug the curved cape. Corners are kept exactly."""
+    r_in = r_out * math.sin(math.radians(18)) / math.sin(math.radians(54))
+    corners = []
+    for k in range(2 * points):
+        r = r_out if k % 2 == 0 else r_in
+        a = math.pi / 2 + k * math.pi / points
+        corners.append((cx + r * math.cos(a), cz + r * math.sin(a)))
+    out = []
+    for k in range(len(corners)):
+        a, b = corners[k], corners[(k + 1) % len(corners)]
+        for i in range(per_edge):
+            t = i / per_edge
+            out.append((a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t))
+    return out
+
+
+def build_flag_star(cape_ob, centre, r_out):
+    """A flat, raised star decal: closed slab from 3.5 mm above the cape's
+    outer surface to 4 mm below it (inside the 14 mm cloth), so it never z-fights."""
     bmc = bmesh.new()
     bmc.from_mesh(cape_ob.data)
     bvh = BVHTree.FromBMesh(bmc)
-    cx, cz = centre
 
     def project(x, z, lift):
         hit = bvh.ray_cast(Vector((x, 3.0, z)), Vector((0, -1, 0)))
@@ -592,47 +613,40 @@ def build_star_emblem(cape_ob, centre, n_pts=12, r_out=0.050, r_in=0.031, ring=(
             nor = -nor
         return loc + nor * lift
 
+    outline = star_outline(centre[0], centre[1], r_out)
+    nb = len(outline)
+    # interior Steiner points (inside the star, away from the edges)
+    sp = 0.012
+    pts = []
+    xs = np.arange(centre[0] - r_out, centre[0] + r_out, sp)
+    zs = np.arange(centre[1] - r_out, centre[1] + r_out, sp)
+    GX, GZ = np.meshgrid(xs, zs)
+    GX, GZ = GX.ravel(), GZ.ravel()
+    ins = points_in_poly(GX, GZ, outline)
+    GX, GZ = GX[ins], GZ[ins]
+    far = dist_to_poly(GX, GZ, outline) > sp * 0.45
+    pts = [(float(x), float(z)) for x, z in zip(GX[far], GZ[far])]
+    coords = [Vector(p) for p in outline] + [Vector(p) for p in pts]
+    edges = [(k, (k + 1) % nb) for k in range(nb)]
+    vo, _eo, fo, orig_v, _oe, _of = delaunay_2d_cdt(coords, edges, [list(range(nb))], 1, 1e-7)
+    # map output verts back to boundary order for the side wall
+    bpos = {}
+    for i, ov in enumerate(orig_v):
+        for o in ov:
+            if o < nb:
+                bpos[o] = i
     bm = bmesh.new()
-
-    def slab(loop2d, tris, boundary_idx):
-        fv = [bm.verts.new(project(x, z, 0.0035)) for x, z in loop2d]
-        bv = [bm.verts.new(project(x, z, -0.004)) for x, z in loop2d]
-        for t in tris:
-            bm.faces.new([fv[k] for k in t])
-            bm.faces.new([bv[k] for k in reversed(t)])
-        for a, b in zip(boundary_idx, boundary_idx[1:] + boundary_idx[:1]):
-            f = bm.faces.new([fv[a], bv[a], bv[b], fv[b]])
-            f.smooth = False
-
-    # star
-    star = []
-    for k in range(2 * n_pts):
-        r = r_out if k % 2 == 0 else r_in
-        a = math.pi / 2 + k * math.pi / n_pts
-        star.append((cx + r * math.cos(a), cz + r * math.sin(a)))
-    pts = star + [(cx, cz)]
-    tris = [(k, (k + 1) % len(star), len(star)) for k in range(len(star))]
-    # CCW check in (x, z)
-    slab(pts, tris, list(range(len(star))))
-    # ring (outer boundary + inner boundary as two separate walls)
-    seg = 48
-    r0, r1 = ring
-    outer = [(cx + r1 * math.cos(2 * math.pi * k / seg), cz + r1 * math.sin(2 * math.pi * k / seg)) for k in range(seg)]
-    inner = [(cx + r0 * math.cos(2 * math.pi * k / seg), cz + r0 * math.sin(2 * math.pi * k / seg)) for k in range(seg)]
-    fo = [bm.verts.new(project(x, z, 0.0035)) for x, z in outer]
-    fi = [bm.verts.new(project(x, z, 0.0035)) for x, z in inner]
-    bo = [bm.verts.new(project(x, z, -0.004)) for x, z in outer]
-    bi = [bm.verts.new(project(x, z, -0.004)) for x, z in inner]
-    for k in range(seg):
-        n = (k + 1) % seg
-        bm.faces.new([fi[k], fo[k], fo[n], fi[n]])
-        bm.faces.new([bi[n], bo[n], bo[k], bi[k]])
-        bm.faces.new([fo[k], bo[k], bo[n], fo[n]]).smooth = False
-        bm.faces.new([fi[n], bi[n], bi[k], fi[k]]).smooth = False
+    fv = [bm.verts.new(project(v.x, v.y, 0.0035)) for v in vo]
+    bv = [bm.verts.new(project(v.x, v.y, -0.004)) for v in vo]
+    for t in fo:
+        bm.faces.new([fv[k] for k in t]).smooth = False
+        bm.faces.new([bv[k] for k in reversed(t)]).smooth = False
+    ring = [bpos[k] for k in range(nb)]
+    for a, b in zip(ring, ring[1:] + ring[:1]):
+        bm.faces.new([fv[a], bv[a], bv[b], fv[b]]).smooth = False
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     bmc.free()
-    ob = bm_to_object("emblem", bm, ["M_Gold"])
-    return ob
+    return bm_to_object("flag_star", bm, ["M_FlagStar"])
 
 
 # ----------------------------------------------------------------------------
@@ -897,7 +911,7 @@ def main():
     hands = {s: build_hand("hand_" + s, hand_c[s]) for s in ("L", "R")}
     foot_c = {"L": Vector((0.22, -0.03, FOOT_BOT)), "R": Vector((-0.22, -0.03, FOOT_BOT))}
     feet = {s: build_foot("foot_" + s, foot_c[s]) for s in ("L", "R")}
-    cape, emblem, cape_shape = build_cape(body)
+    cape, flag_star, cape_shape = build_cape(body)
 
     # --- weights (before joining; groups merge by name) ---
     eye_min_z = min(v.co.z for v in eyes.data.vertices)
@@ -911,11 +925,11 @@ def main():
     for i, r in enumerate(rays, start=1):
         weight_all(r, "ray.%d" % i)
     weight_cape(cape, cape_shape)
-    copy_weights_nearest(emblem, cape)
+    copy_weights_nearest(flag_star, cape)
 
     body = join([body, hands["L"], hands["R"], feet["L"], feet["R"]], "LG_Body")
     rays_ob = join(rays, "LG_Rays")
-    cape = join([cape, emblem], "LG_Cape")
+    cape = join([cape, flag_star], "LG_Cape")
 
     arm = build_armature(eye_c, ray_info, hand_c, foot_c, cape_shape)
     for ob in (body, eyes, rays_ob, cape):

@@ -65,7 +65,27 @@ PALETTE = {
     "M_ShellLight":  ("#FFB38A", 0.40, 0.0),
     "M_Cloud":       ("#FFFFFF", 0.60, 0.0),
     "M_Coconut":     ("#7A5230", 0.55, 0.0),
+    # --- Vịnh Hạ Long level ---
+    "M_Pearl":       ("#FFF3EA", 0.15, 0.0),
+    "M_Crystal":     ("#5FE6E0", 0.10, 0.0),
+    "M_Jade":        ("#23B574", 0.30, 0.0),
+    "M_JadeDark":    ("#157A52", 0.35, 0.0),
+    "M_JadeLight":   ("#8FE3A6", 0.35, 0.0),
+    "M_BarrelBlue":  ("#2C7FD6", 0.35, 0.0),
+    "M_RoofBlue":    ("#3D84C6", 0.45, 0.0),
+    "M_FlagRed":     ("#DA251D", 0.50, 0.0),
+    "M_FlagYellow":  ("#FFFF00", 0.45, 0.0),
+    "M_Sail":        ("#D8742C", 0.60, 0.0),
+    "M_Limestone":   ("#EEDDB6", 0.70, 0.0),
+    "M_Amber":       ("#D9A04E", 0.55, 0.0),
+    "M_Kayak":       ("#FFB21E", 0.30, 0.0),
+    "M_Net":         ("#3E8C84", 0.70, 0.0),
+    "M_Float":       ("#F2C230", 0.40, 0.0),
+    "M_Metal":       ("#B8C2CC", 0.35, 0.40),
 }
+
+# emissive-ish roles: (strength); emission colour = base colour
+EMISSIVE = {"M_Pearl": 0.35, "M_Crystal": 0.9}
 
 
 def srgb_to_linear(c):
@@ -95,6 +115,9 @@ def material(name):
     bsdf.inputs["Roughness"].default_value = rough
     bsdf.inputs["Metallic"].default_value = metal
     # A touch of coat makes the toy gloss read in the contact-sheet renders (not exported).
+    if name in EMISSIVE:
+        bsdf.inputs["Emission Color"].default_value = (*lin, 1.0)
+        bsdf.inputs["Emission Strength"].default_value = EMISSIVE[name]
     if "Coat Weight" in bsdf.inputs:
         bsdf.inputs["Coat Weight"].default_value = 0.25 if rough < 0.45 else 0.0
     return m

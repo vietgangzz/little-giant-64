@@ -27,7 +27,8 @@ if HERE not in sys.path:
 
 import lib  # noqa: E402
 
-MODULES = ["lib", "motifs", "p_collect", "p_blocks", "p_nature", "p_structures", "p_crab", "render"]
+MODULES = ["lib", "motifs", "p_collect", "p_blocks", "p_nature", "p_structures", "p_crab", "p_cave",
+           "p_dragon", "p_halong", "render"]
 for _m in MODULES:
     if _m in sys.modules:
         importlib.reload(sys.modules[_m])
@@ -65,7 +66,28 @@ PROPS = [
     ("bridge_plank", "p_structures", "bridge_plank"),
     ("cong_lang", "p_structures", "cong_lang"),
     ("crab", "p_crab", "crab"),
+    # --- level 2: Vịnh Hạ Long ---
+    ("junk_boat", "p_halong", "junk_boat"),
+    ("raft_house", "p_halong", "raft_house"),
+    ("raft_platform", "p_halong", "raft_platform"),
+    ("fish_cage_ring", "p_halong", "fish_cage_ring"),
+    ("kayak", "p_halong", "kayak"),
+    ("pearl", "p_cave", "pearl"),
+    ("stalactite", "p_cave", "stalactite"),
+    ("stalagmite", "p_cave", "stalagmite"),
+    ("crystal_cluster", "p_cave", "crystal_cluster"),
+    ("pavilion_titop", "p_halong", "pavilion_titop"),
+    ("dragon_head", "p_dragon", "dragon_head"),
+    ("dragon_body", "p_dragon", "dragon_body"),
+    ("dragon_tail", "p_dragon", "dragon_tail"),
+    ("dragon_leg", "p_dragon", "dragon_leg"),
+    ("buoy", "p_halong", "buoy"),
+    ("seagull", "p_halong", "seagull"),
+    ("net_rack", "p_halong", "net_rack"),
+    ("vietnam_flag", "p_halong", "vietnam_flag"),
 ]
+# contact-sheet groups: props from FIRST_HALONG on render into halong_sheet_*.png
+FIRST_HALONG = "junk_boat"
 
 
 def parse_args():
@@ -91,7 +113,37 @@ def parse_args():
     return opts
 
 
+def _claim_names(col):
+    """Blender keeps object names unique ("Flag", "Flag.001"...) but glTF node names must be
+    exact (Godot looks for "Flag"). Temporarily give this collection's objects their base names."""
+    swaps = []
+    for o in col.all_objects:
+        base, dot, num = o.name.rpartition(".")
+        if dot and num.isdigit():
+            other = bpy.data.objects.get(base)
+            if other is not None:
+                other.name = base + "__parked"
+                swaps.append((other, base))
+            old = o.name
+            o.name = base
+            swaps.append((o, old))
+    return swaps
+
+
+def _restore_names(swaps):
+    for o, name in reversed(swaps):
+        o.name = name
+
+
 def export_collection(col, path, animated):
+    swaps = _claim_names(col)
+    try:
+        _export(col, path, animated)
+    finally:
+        _restore_names(swaps)
+
+
+def _export(col, path, animated):
     bpy.ops.object.select_all(action="DESELECT")
     objs = list(col.all_objects)
     for o in objs:
@@ -162,10 +214,17 @@ def main():
         import render
         importlib.reload(render)
         rdir = os.path.join(HERE, "renders")
-        paths = render.render_tiles(built, os.path.join(rdir, "tiles"))
+        names = [p[0] for p in PROPS]
+        split = names.index(FIRST_HALONG)
+        groups = (("sheet", [c for c in built if names.index(c.name) < split]),
+                  ("halong_sheet", [c for c in built if names.index(c.name) >= split]))
         per = 12
-        for k in range(0, len(paths), per):
-            render.compose(paths[k:k + per], os.path.join(rdir, f"sheet_{k // per + 1}.png"), cols=4)
+        for prefix, cols in groups:
+            if not cols:
+                continue
+            paths = render.render_tiles(cols, os.path.join(rdir, "tiles"))
+            for k in range(0, len(paths), per):
+                render.compose(paths[k:k + per], os.path.join(rdir, f"{prefix}_{k // per + 1}.png"), cols=4)
     print(f"done in {time.time() - t0:.1f}s")
 
 

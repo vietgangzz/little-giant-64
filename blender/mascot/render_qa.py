@@ -6,6 +6,7 @@ Writes PNGs to blender/mascot/renders/:
   turnaround.png   front / 3/4 / side / back of the rest pose
   hero.png         3/4 close-up of the rest pose
   face.png         front close-up (eyes, rays)
+  back.png         back close-up (flag cape)
   contact_1.png, contact_2.png   3 key frames of every action
 Options after `--`: --only turn|contact|action:<name>, --yaw <deg> (camera
 yaw for contact/strip renders, 0 = front, 180 = back), --tag <name> (sheet
@@ -185,6 +186,8 @@ def main():
         render(os.path.join(OUT, "hero.png"), 800, 800)
         aim(cam, 0, dist=2.6, height=0.8, target=(0.12, 0, 0.8))
         render(os.path.join(OUT, "face.png"), 800, 700)
+        aim(cam, 165, dist=2.8, height=0.75, target=(0.0, 0, 0.62))
+        render(os.path.join(OUT, "back.png"), 800, 700)
     if ONLY in (None, "contact") and arm and bpy.data.actions:
         thumbs = []
         for name, frames in CONTACT:
