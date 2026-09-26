@@ -147,6 +147,8 @@ func show_red(count: int) -> void:
 
 
 func toast(text: String, seconds := 3.0) -> void:
+	if Game.args.has("trailer"):
+		return # the demo video is shown without caption lines
 	var p := UiKit.pill(text, 30)
 	p.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	toast_box.add_child(p)
@@ -229,12 +231,15 @@ func ending_card() -> void:
 	line.custom_minimum_size = Vector2(120, 2)
 	line.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	ending.add_child(line)
-	ending.add_child(UiKit.label(Game.t("Made with ♥ by VG TEAM · Blender · Godot", "Làm bằng ♥ bởi VG TEAM · Blender · Godot"), 34, Color(0.92, 0.92, 0.9), 0, false))
+	var trailer := Game.args.has("trailer")
+	if not trailer:
+		ending.add_child(UiKit.label(Game.t("Made with ♥ by VG TEAM · Blender · Godot", "Làm bằng ♥ bởi VG TEAM · Blender · Godot"), 34, Color(0.92, 0.92, 0.9), 0, false))
 	var mins := int(Game.play_time) / 60
 	var secs := int(Game.play_time) % 60
 	ending.add_child(UiKit.label("%d ★   ·   %d %s   ·   %d:%02d" % [Game.level_star_count(), Game.coins, Game.t("coins", "đồng xu"), mins, secs], 30, Color(0.75, 0.78, 0.82), 0, false))
 	var hint := UiKit.label(Game.t("Press Jump to keep exploring", "Bấm Nhảy để tiếp tục khám phá"), 26, Color(0.6, 0.65, 0.7), 0, false)
-	ending.add_child(hint)
+	if not trailer:
+		ending.add_child(hint)
 	ending.modulate.a = 0.0
 	ending.create_tween().tween_property(ending, "modulate:a", 1.0, 1.2)
 	Sound.music("ending", 2.0)

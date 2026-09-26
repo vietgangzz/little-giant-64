@@ -5,8 +5,10 @@ Mọi cảnh đều là gameplay thật chạy trong engine. Bot chơi bằng in
 do một "đạo diễn" trong game (`scripts/qa/trailer.gd`) điều khiển. Movie Maker của Godot ghi từng
 khung hình ở 60 fps cố định, nên hình mượt tuyệt đối, không phụ thuộc máy nhanh hay chậm.
 
-Phụ đề nằm trong một viên thuốc tối ở mép dưới, giống video tham khảo. Âm thanh là âm thanh
-gốc của game: nhạc Kevin MacLeod cộng tiếng hiệu ứng thật.
+Video không có phụ đề hay dòng thông báo nào; cột "Phụ đề" bên dưới chỉ để ghi chú nội dung
+cảnh (bật lại bằng `CAPTIONS` trong `trailer.gd`). Thẻ chương "MAP 2" và chữ STAR GET! /
+ALL STARS! của game vẫn giữ. Âm thanh là âm thanh gốc của game: nhạc Kevin MacLeod cộng tiếng
+hiệu ứng thật.
 
 ## Phần 1: Hạ Long Skies (~30 s)
 
@@ -36,7 +38,7 @@ gốc của game: nhạc Kevin MacLeod cộng tiếng hiệu ứng thật.
 | # | Thời lượng | Hình ảnh | Phụ đề |
 |---|---|---|---|
 | 14 | 5 s | **ALL STARS!** trên trống đồng: mascot nhảy múa, pháo giấy, tiếng cồng, camera xoay quanh | — |
-| 15 | 3.5 s | Thẻ kết màu mực: **LITTLE GIANT 64**, *Made with ♥ by VG TEAM · Blender · Godot* | — |
+| 15 | 3.5 s | Thẻ kết màu mực: **LITTLE GIANT 64**, tên map và thành tích (bản trailer không có dòng "Made with…" và dòng hướng dẫn) | — |
 
 ## Cách quay lại
 

@@ -15,6 +15,8 @@ var bot: QaBot
 var layer: CanvasLayer
 var _caption: PanelContainer
 var _t0 := 0
+## The owner asked for a clean cut: no captions in the video.
+const CAPTIONS := false
 
 
 func _ready() -> void:
@@ -87,6 +89,8 @@ func _build_overlay() -> void:
 
 
 func caption(text: String, seconds := 3.0) -> void:
+	if not CAPTIONS:
+		return
 	(_caption.get_node("Text") as Label).text = text
 	_caption.reset_size()
 	_caption.offset_left = -_caption.size.x * 0.5
