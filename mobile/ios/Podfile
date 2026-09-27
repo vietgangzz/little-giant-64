@@ -1,0 +1,71 @@
+require File.join(File.dirname(`node --print "require.resolve('expo/package.json')"`), "scripts/autolinking")
+
+# Resolve react_native_pods.rb with node to allow for hoisting
+require Pod::Executable.execute_command('node', ['-p',
+  'require.resolve(
+    "react-native/scripts/react_native_pods.rb",
+    {paths: [process.argv[1]]},
+  )', __dir__]).strip
+
+# platform :ios, min_ios_version_supported
+platform :ios, 17.0
+prepare_react_native_project!
+
+linkage = ENV['USE_FRAMEWORKS']
+if linkage != nil
+  Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
+  use_frameworks! :linkage => linkage.to_sym
+end
+
+
+target 'LittleGiant64' do
+  # Expo
+  use_expo_modules!
+  post_integrate do |installer|
+    begin
+      expo_patch_react_imports!(installer)
+    rescue => e
+      Pod::UI.warn e
+    end
+  end
+  
+  config = use_native_modules!
+
+  use_react_native!(
+    :path => config[:reactNativePath],
+    # An absolute path to your application root.
+    :app_path => "#{Pod::Config.instance.installation_root}/.."
+  )
+
+  post_install do |installer|
+    # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
+    react_native_post_install(
+      installer,
+      config[:reactNativePath],
+      :mac_catalyst_enabled => false,
+      # :ccache_enabled => true
+    )
+    # Xcode 27's clang rejects fmt 11's consteval format strings (used by
+    # React Native 0.81's folly/fmt pods). Build fmt without consteval.
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |bc|
+        defs = bc.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] || ['$(inherited)']
+        defs = [defs] unless defs.is_a?(Array)
+        defs << 'FMT_USE_CONSTEVAL=0' unless defs.include?('FMT_USE_CONSTEVAL=0')
+        bc.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] = defs
+      end
+    end
+    # fmt 11.0.2 ignores an outside FMT_USE_CONSTEVAL, so teach its header to
+    # honour one.
+    fmt_base = File.join(installer.sandbox.root, 'fmt', 'include', 'fmt', 'base.h')
+    if File.exist?(fmt_base)
+      src = File.read(fmt_base)
+      marker = "#if !defined(__cpp_lib_is_constant_evaluated)\n#  define FMT_USE_CONSTEVAL 0"
+      unless src.include?('provided by the build')
+        src = src.sub(marker, "#if defined(FMT_USE_CONSTEVAL)  // provided by the build\n#elif !defined(__cpp_lib_is_constant_evaluated)\n#  define FMT_USE_CONSTEVAL 0")
+        File.chmod(0644, fmt_base)
+        File.write(fmt_base, src)
+      end
+    end
+  end
+end
