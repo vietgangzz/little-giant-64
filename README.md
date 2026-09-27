@@ -1,4 +1,4 @@
-# Little Giant 64
+# Little Giant: Star Hop
 
 A Super-Mario-64-style 3D island platformer starring the VGANG **Little Giant**, who wears a
 Vietnamese flag cape. The mascot is
@@ -7,6 +7,9 @@ modelled, rigged and animated in **Blender 5.2** from the approved brand vectors
 
 There are two levels, and a junk boat moored in each one sails you to the other. You can also
 travel from the pause menu.
+
+It also runs on iPhone inside a React Native app, with touch controls, haptics and a Skia +
+Reanimated splash: see [mobile/README.md](mobile/README.md).
 
 - **Hạ Long Skies** has floating islands, rice terraces, limestone karsts and a lotus lagoon. It
   has 8 bronze Đông Sơn stars and 146 coins. Collect every star and the great bronze drum rings
@@ -119,6 +122,11 @@ godot --path . -- --start --fps                     # prints fps, draw calls and
 ```
 
 Test runs (`--bot`, `--warp`, `--god`, `--tour`, `--shot`) never write the save file.
+
+```bash
+godot --path . -- --touch                    # the phone controls on desktop (the mouse acts as a finger)
+godot --path . --resolution 1400x986 -- --touch-qa --quit   # plays the touch controls itself: PASS/FAIL per control
+```
 
 ## Export
 

@@ -120,6 +120,15 @@ func set_checkpoint(where: Vector3) -> void:
 
 # ------------------------------------------------------------------ input
 
+## For the touch buttons: whether a dash or a ground pound would fire right now.
+func dash_ready() -> bool:
+	return _dash_cooldown <= 0.0 and (state == S.GROUND or (state == S.AIR and _dash_available))
+
+
+func pound_ready() -> bool:
+	return state == S.AIR
+
+
 func _read_input() -> void:
 	var v := Vector2.ZERO
 	if Game.in_cutscene or Game.paused or state == S.LOCKED or state == S.RESPAWN:

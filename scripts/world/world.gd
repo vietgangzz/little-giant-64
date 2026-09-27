@@ -117,7 +117,7 @@ func _environment() -> void:
 	env.glow_bloom = 0.06
 	env.glow_hdr_threshold = 1.1
 	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_SOFTLIGHT
-	env.ssao_enabled = true
+	env.ssao_enabled = not Game.is_phone() # Forward+ only
 	env.ssao_radius = 1.4
 	env.ssao_intensity = 1.6
 	env.ssao_light_affect = 0.15
@@ -141,8 +141,8 @@ func _environment() -> void:
 	sun.shadow_enabled = true
 	sun.shadow_bias = 0.04
 	sun.shadow_normal_bias = 1.2
-	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS
-	sun.directional_shadow_max_distance = 110.0
+	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS if Game.is_phone() else DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS
+	sun.directional_shadow_max_distance = 80.0 if Game.is_phone() else 110.0
 	sun.directional_shadow_blend_splits = true
 	sun.light_angular_distance = 0.6
 	add_child(sun)

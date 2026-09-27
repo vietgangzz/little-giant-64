@@ -45,6 +45,7 @@ func open() -> void:
 	Sound.muffle(true)
 	Sound.play("pause", -4.0)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	_show_hud(false) # the menu has its own counts; the HUD would sit under PAUSED
 	_index = 0
 	_rebuild()
 
@@ -54,7 +55,13 @@ func close() -> void:
 	Game.paused = false
 	get_tree().paused = false
 	Sound.muffle(false)
+	_show_hud(true)
 	Game.save()
+
+
+func _show_hud(on: bool) -> void:
+	for h in get_tree().get_nodes_in_group("hud"):
+		h.visible = on
 
 
 func _rebuild() -> void:
@@ -75,6 +82,10 @@ func _rebuild() -> void:
 		Game.sfx_volume = fmod(Game.sfx_volume + 0.2, 1.2) if Game.sfx_volume < 0.99 else 0.0
 		Game.sfx_volume = snappedf(Game.sfx_volume, 0.2)
 		Sound.apply_volumes())
+	_add(Game.t("Camera speed: ", "Tốc độ camera: ") + "%.1f×" % Game.mouse_sensitivity, func():
+		var speeds := [0.6, 0.8, 1.0, 1.3, 1.6]
+		var i := speeds.find(snappedf(Game.mouse_sensitivity, 0.1))
+		Game.mouse_sensitivity = speeds[(i + 1) % speeds.size()])
 	_add(Game.t("Invert camera X: ", "Đảo camera X: ") + onoff.call(Game.invert_x), func(): Game.invert_x = not Game.invert_x)
 	_add(Game.t("Invert camera Y: ", "Đảo camera Y: ") + onoff.call(Game.invert_y), func(): Game.invert_y = not Game.invert_y)
 	_add(Game.t("Language: English", "Ngôn ngữ: Tiếng Việt"), Game.toggle_language)
@@ -121,9 +132,10 @@ func _add(text: String, action: Callable) -> void:
 
 
 func _highlight() -> void:
+	var k := 1.2 if Game.touch_mode else 1.0 # finger-sized on phones
 	for i in _items.size():
 		var sel := i == _index
-		(_items[i][0] as Label).label_settings = UiKit.style(44 if sel else 36, UiKit.LIME if sel else Color(1, 1, 1, 0.85), 10 if sel else 6)
+		(_items[i][0] as Label).label_settings = UiKit.style(int((44 if sel else 36) * k), UiKit.LIME if sel else Color(1, 1, 1, 0.85), 10 if sel else 6)
 
 
 func _activate() -> void:
@@ -153,9 +165,23 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action_pressed("ui_confirm") or event.is_action_pressed("ui_accept"):
 		get_viewport().set_input_as_handled()
 		_activate()
-	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		for i in _items.size():
-			if (_items[i][0] as Label).get_global_rect().has_point(event.position):
-				_index = i
-				_activate()
-				return
+
+
+## Clicks and taps are read before the GUI (the dimmer would swallow them). A phone tap
+## arrives both as a touch and as an emulated click, so touch mode only listens to the touch.
+func _input(event: InputEvent) -> void:
+	if not visible:
+		return
+	var tap := false
+	if Game.touch_mode:
+		tap = event is InputEventScreenTouch and event.pressed
+	else:
+		tap = event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT
+	if not tap:
+		return
+	for i in _items.size():
+		if (_items[i][0] as Label).get_global_rect().grow(10).has_point(event.position):
+			get_viewport().set_input_as_handled()
+			_index = i
+			_activate()
+			return

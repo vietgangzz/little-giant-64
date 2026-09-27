@@ -68,6 +68,9 @@ func snap_behind() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if cutscene or Game.paused:
 		return
+	# on a phone, touches also arrive as emulated mouse events; the camera drag has its own path
+	if Game.touch_mode and (event is InputEventMouseButton or event is InputEventMouseMotion):
+		return
 	if event is InputEventMouseButton and event.pressed:
 		if event.button_index == MOUSE_BUTTON_LEFT or event.button_index == MOUSE_BUTTON_RIGHT:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -98,6 +101,18 @@ func _unhandled_input(event: InputEvent) -> void:
 		_yaw_goal = atan2(-target.facing.x, -target.facing.z)
 		_yaw_goal = yaw + wrapf(_yaw_goal - yaw, -PI, PI)
 		_manual_timer = 0.6
+
+
+## A drag on the right half of a phone screen swings the camera (already scaled to radians).
+func touch_orbit(turn: Vector2) -> void:
+	if cutscene or Game.paused:
+		return
+	var sx := -1.0 if Game.invert_x else 1.0
+	var sy := -1.0 if Game.invert_y else 1.0
+	yaw -= turn.x * Game.mouse_sensitivity * sx
+	pitch = clampf(pitch + turn.y * Game.mouse_sensitivity * sy, MIN_PITCH, MAX_PITCH)
+	_yaw_goal = yaw
+	_manual_timer = 1.4
 
 
 func _process(delta: float) -> void:

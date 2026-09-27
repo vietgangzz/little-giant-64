@@ -65,6 +65,7 @@ var sfx_volume := 0.9
 var invert_x := false
 var invert_y := false
 var cape := true
+var touch_tips_seen := false ## the first-run touch tutorial has been shown
 var mouse_sensitivity := 1.0
 var best_time := 0.0
 var play_time := 0.0
@@ -72,6 +73,9 @@ var finished := false ## the current level's finale has played this session
 var finished_levels: Dictionary = {}
 var paused := false
 var in_cutscene := false
+var arriving := false ## set by travel(): the next level starts in play, not on the title
+## On-screen controls instead of keys (phones, the React Native embed, --touch on desktop).
+var touch_mode := false
 
 ## Command-line switches (after `--`): --start --god --shot=SEC:PATH --warp=ID --tour=DIR
 ## --all-stars --bot --lang=vi --quit-after-shot
@@ -87,7 +91,12 @@ func _ready() -> void:
 			args[s.substr(0, eq)] = s.substr(eq + 1)
 		else:
 			args[s] = true
+	touch_mode = is_phone() or args.has("touch") or args.has("touch-qa")
 	_setup_input()
+	if is_phone():
+		_phone_video.call_deferred()
+	if args.has("touch") and not OS.has_feature("mobile"):
+		Input.emulate_touch_from_mouse = true # try the phone controls with a mouse
 	if args.has("trailer"):
 		seed(64) # the same take every time
 	load_save()
@@ -97,13 +106,95 @@ func _ready() -> void:
 		level = String(args["level"])
 
 
+## Running on a phone: an iOS/Android build or the React Native embed (--phone fakes it).
+func is_phone() -> bool:
+	return OS.get_name() in ["iOS", "Android"] or OS.has_feature("mobile") or OS.has_feature("rn_embed") or args.has("phone")
+
+
+## Phones run the Mobile renderer. It loses the depth texture the sea's shore foam reads when
+## MSAA is on, so edges are smoothed with FXAA instead; 3D renders at 80% size (FSR is
+## Forward+ only) and shadows get a smaller atlas and cheaper filtering.
+func _phone_video() -> void:
+	var vp := get_viewport()
+	vp.msaa_3d = Viewport.MSAA_DISABLED
+	vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA
+	vp.scaling_3d_mode = Viewport.SCALING_3D_MODE_BILINEAR
+	vp.scaling_3d_scale = 0.8
+	Engine.max_fps = 60 # steady 60 instead of chasing 120 Hz and draining the battery
+	RenderingServer.directional_shadow_atlas_set_size(4096, true)
+	RenderingServer.directional_soft_shadow_filter_set_quality(RenderingServer.SHADOW_QUALITY_SOFT_LOW)
+
+
+## A haptic tap on phones: light (a button), medium (a landing), heavy (a ground pound),
+## success (a star) or error (getting hurt). In the React Native app the host plays it
+## through the iOS haptic engine; a bare phone build falls back to a plain vibration.
+func haptic(kind := "light") -> void:
+	if not is_phone():
+		return
+	if not _rn_listener.is_null():
+		rn_emit("haptic:" + kind)
+	else:
+		Input.vibrate_handheld({"light": 15, "medium": 30, "heavy": 60, "success": 120, "error": 80}.get(kind, 20))
+
+
+# ---------------------------------------------------------------- React Native host
+
+## The phone app (mobile/) draws the splash and the loading iris until the game says it is
+## ready, plays the haptics the game asks for and pauses the game when the app is left.
+## States: boot → ready (title on screen), loading:<level> while a level reloads.
+var rn_state := "boot"
+var _rn_listener := Callable()
+
+
+## Called once by the host from its Godot-thread worklet, with a JS function to call back.
+func rn_listen(listener: Callable) -> void:
+	_rn_listener = listener
+	rn_emit("state:" + rn_state)
+
+
+func rn_emit(event: String) -> void:
+	if not _rn_listener.is_null():
+		_rn_listener.call(event)
+
+
+func rn_set_state(s: String) -> void:
+	rn_state = s
+	rn_emit("state:" + s)
+
+
+func has_host() -> bool:
+	return not _rn_listener.is_null()
+
+
+## The app went to the background: open the pause menu so play never resumes by surprise.
+func rn_background() -> void:
+	get_tree().call_group("main", "auto_pause")
+
+
 func is_test_run() -> bool:
-	return args.has("bot") or args.has("trailer") or args.has("god") or args.has("tour") or args.has("shot") or args.has("warp") or args.has("all-stars")
+	return args.has("bot") or args.has("touch-qa") or FileAccess.file_exists("user://touch_qa.txt") or args.has("trailer") or args.has("god") or args.has("tour") or args.has("shot") or args.has("warp") or args.has("all-stars")
+
+
+var _last_win := Vector2i.ZERO
 
 
 func _process(delta: float) -> void:
 	if not paused and not finished and not in_cutscene:
 		play_time += delta
+	if is_phone():
+		_poll_window()
+
+
+## The React Native embed resizes its window without emitting size_changed, which leaves the
+## canvas stretched for the old size. Watch the size and re-apply the stretch when it moves.
+func _poll_window() -> void:
+	var w := get_window().size
+	if w == _last_win or w.x < 2 or w.y < 2:
+		return
+	_last_win = w
+	var base := get_window().content_scale_size
+	get_window().content_scale_size = base + Vector2i.ONE
+	get_window().content_scale_size = base
 
 
 # ---------------------------------------------------------------- collectibles
@@ -150,6 +241,10 @@ func level_name(lv := "") -> String:
 
 ## Leaves for another level: session coins and lanterns start over, stars are kept.
 func travel(to: String) -> void:
+	if has_host():
+		# the phone app closes its loading iris first, so the reload hitch is never seen
+		rn_set_state("loading:" + to)
+		await get_tree().create_timer(0.6, true).timeout
 	level = to
 	coins = 0
 	red_coins = 0
@@ -157,6 +252,7 @@ func travel(to: String) -> void:
 	hp = MAX_HP
 	finished = finished_levels.has(to)
 	in_cutscene = false
+	arriving = true
 	get_tree().paused = false
 	get_tree().reload_current_scene()
 
@@ -165,6 +261,7 @@ func collect_star(id: String) -> void:
 	if stars.has(id):
 		return
 	stars[id] = true
+	haptic("success")
 	star_collected.emit(id)
 	save()
 
@@ -185,6 +282,7 @@ func hurt(amount := 1) -> void:
 	if args.has("god"):
 		return
 	hp = max(0, hp - amount)
+	haptic("error")
 	health_changed.emit(hp)
 
 
@@ -212,6 +310,7 @@ func save() -> void:
 		"stars": stars.keys(), "lang": lang, "music": music_volume, "sfx": sfx_volume,
 		"invert_x": invert_x, "invert_y": invert_y, "cape": cape, "sens": mouse_sensitivity,
 		"best_time": best_time, "level": level, "finished_levels": finished_levels.keys(),
+		"touch_tips": touch_tips_seen,
 	}
 	var f := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
 	if f:
@@ -234,6 +333,7 @@ func load_save() -> void:
 	cape = data.get("cape", cape)
 	mouse_sensitivity = data.get("sens", mouse_sensitivity)
 	best_time = data.get("best_time", best_time)
+	touch_tips_seen = data.get("touch_tips", touch_tips_seen)
 	level = data.get("level", level)
 	if not LEVELS.has(level):
 		level = "skies"
@@ -269,6 +369,13 @@ func _setup_input() -> void:
 			var ev := InputEventKey.new()
 			ev.physical_keycode = k
 			InputMap.action_add_event(action, ev)
+	for action in ["cam_up", "cam_down", "pound_trigger"]:
+		if not InputMap.has_action(action):
+			InputMap.add_action(action, 0.2)
+	# Phones play by touch. The iOS embed also reports a phantom pad whose stuck axes would
+	# read as held directions, so pads are desktop-only.
+	if is_phone():
+		return
 	var pad_buttons := {
 		"jump": [JOY_BUTTON_A], "dash": [JOY_BUTTON_X, JOY_BUTTON_RIGHT_SHOULDER],
 		"pound": [JOY_BUTTON_B, JOY_BUTTON_LEFT_SHOULDER], "pause": [JOY_BUTTON_START],
@@ -296,3 +403,4 @@ func _setup_input() -> void:
 	# The pad's left trigger is also a ground pound.
 	for ev in InputMap.action_get_events("pound_trigger"):
 		InputMap.action_add_event("pound", ev)
+

@@ -26,6 +26,10 @@ func _ready() -> void:
 	root = Control.new()
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if Game.touch_mode:
+		# keep the counters clear of rounded corners and the Dynamic Island
+		root.offset_left = 70
+		root.offset_right = -70
 	add_child(root)
 	_build_counters()
 	_build_hearts()
@@ -51,6 +55,9 @@ func _ready() -> void:
 	fader.color = Color(0.035, 0.035, 0.043, 0.0)
 	fader.set_anchors_preset(Control.PRESET_FULL_RECT)
 	fader.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# the fade covers the whole screen, past the phone inset
+	fader.offset_left = -root.offset_left
+	fader.offset_right = -root.offset_right
 	root.add_child(fader)
 	Game.coins_changed.connect(func(_c): _coin_bump = 1.0)
 	Game.star_collected.connect(func(_id): _star_bump = 1.0)
@@ -221,7 +228,7 @@ func ending_card() -> void:
 	(ending as VBoxContainer).alignment = BoxContainer.ALIGNMENT_CENTER
 	(ending as VBoxContainer).add_theme_constant_override("separation", 14)
 	root.add_child(ending)
-	var title := UiKit.label("LITTLE GIANT 64", 118, Color("#f5f1e6"), 0)
+	var title := UiKit.label("LITTLE GIANT: STAR HOP", 104, Color("#f5f1e6"), 0)
 	title.label_settings.shadow_size = 0
 	ending.add_child(title)
 	var sub := UiKit.label(Game.level_name(), 40, UiKit.LIME, 0)
@@ -238,6 +245,8 @@ func ending_card() -> void:
 	var secs := int(Game.play_time) % 60
 	ending.add_child(UiKit.label("%d ★   ·   %d %s   ·   %d:%02d" % [Game.level_star_count(), Game.coins, Game.t("coins", "đồng xu"), mins, secs], 30, Color(0.75, 0.78, 0.82), 0, false))
 	var hint := UiKit.label(Game.t("Press Jump to keep exploring", "Bấm Nhảy để tiếp tục khám phá"), 26, Color(0.6, 0.65, 0.7), 0, false)
+	if Game.touch_mode:
+		hint.text = Game.t("Tap to keep exploring", "Chạm để tiếp tục khám phá")
 	if not trailer:
 		ending.add_child(hint)
 	ending.modulate.a = 0.0
@@ -247,7 +256,8 @@ func ending_card() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if ending and ending.modulate.a > 0.9 and event.is_action_pressed("jump"):
+	var tap: bool = Game.touch_mode and event is InputEventScreenTouch and event.pressed
+	if ending and ending.modulate.a > 0.9 and (event.is_action_pressed("jump") or tap):
 		var e := ending
 		ending = null
 		var tw := e.create_tween()

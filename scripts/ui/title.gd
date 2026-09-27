@@ -6,6 +6,7 @@ signal start_game
 
 var root: Control
 var _row: HBoxContainer
+var _row2: HBoxContainer
 var _menu: VBoxContainer
 var _items: Array[Label] = []
 var _index := 0
@@ -27,7 +28,8 @@ func _ready() -> void:
 	v.alignment = BoxContainer.ALIGNMENT_CENTER
 	v.add_theme_constant_override("separation", -26)
 	root.add_child(v)
-	_row = UiKit.rainbow("LITTLE GIANT 64", 150, v, 0.06, true, 13)
+	_row = UiKit.rainbow("LITTLE GIANT", 150, v, 0.06, true)
+	_row2 = UiKit.rainbow("★ STAR HOP ★", 92, v, 0.05, true, 0)
 	var sub := UiKit.label(Game.level_name(), 46, Color("#fffbe8"), 10)
 	sub.name = "Sub"
 	v.add_child(sub)
@@ -63,13 +65,17 @@ func _build_menu() -> void:
 	var entries := [
 		Game.t("Continue", "Chơi tiếp") if Game.star_count() > 0 else Game.t("Start", "Bắt đầu"),
 		Game.t("Language: English", "Ngôn ngữ: Tiếng Việt"),
-		Game.t("Quit", "Thoát"),
 	]
+	if not Game.is_phone(): # phone apps don't quit themselves
+		entries.append(Game.t("Quit", "Thoát"))
 	for e in entries:
 		var l := UiKit.label(e, 44, Color.WHITE, 10)
 		_menu.add_child(l)
 		_items.append(l)
 	var hint := UiKit.label(Game.t("WASD move · Space jump ×2 · Shift dash · Ctrl pound · Q/E/mouse camera", "WASD di chuyển · Space nhảy ×2 · Shift lướt · Ctrl dậm · Q/E/chuột xoay"), 22, Color(1, 1, 1, 0.8), 6, false)
+	if Game.touch_mode:
+		hint.text = Game.t("Tap to choose · left thumb moves · right thumb jumps · drag right side to look", "Chạm để chọn · ngón trái di chuyển · ngón phải nhảy · vuốt bên phải để xoay")
+		hint.label_settings = UiKit.style(30, Color(1, 1, 1, 0.85), 6, false)
 	_menu.add_child(hint)
 	_highlight()
 
@@ -80,14 +86,16 @@ func _rebuild() -> void:
 
 
 func _highlight() -> void:
+	var k := 1.25 if Game.touch_mode else 1.0 # finger-sized on phones
 	for i in _items.size():
 		var sel := i == _index
-		_items[i].label_settings = UiKit.style(52 if sel else 40, UiKit.LIME if sel else Color(1, 1, 1, 0.85), 12 if sel else 8)
+		_items[i].label_settings = UiKit.style(int((52 if sel else 40) * k), UiKit.LIME if sel else Color(1, 1, 1, 0.85), 12 if sel else 8)
 
 
 func _process(delta: float) -> void:
 	_t += delta
 	UiKit.wave(_row, _t, 8.0)
+	UiKit.wave(_row2, _t + 0.6, 5.0)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -111,14 +119,28 @@ func _unhandled_input(event: InputEvent) -> void:
 				Game.toggle_language()
 			2:
 				get_tree().quit()
-	elif event is InputEventMouseButton and event.pressed:
-		for i in _items.size():
-			if _items[i].get_global_rect().has_point(event.position):
-				_index = i
-				_highlight()
-				Input.action_press("ui_confirm")
-				Input.action_release("ui_confirm")
-				var ev := InputEventAction.new()
-				ev.action = "ui_confirm"
-				ev.pressed = true
-				_unhandled_input(ev)
+
+
+## Clicks and taps are read before the GUI, whose full-screen root would otherwise swallow
+## them. A phone tap arrives both as a touch and as an emulated click, so touch mode only
+## listens to the touch.
+func _input(event: InputEvent) -> void:
+	if not visible:
+		return
+	var tap := false
+	if Game.touch_mode:
+		tap = event is InputEventScreenTouch and event.pressed
+	else:
+		tap = event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT
+	if not tap:
+		return
+	for i in _items.size():
+		if _items[i].get_global_rect().grow(18).has_point(event.position):
+			get_viewport().set_input_as_handled()
+			_index = i
+			_highlight()
+			var ev := InputEventAction.new()
+			ev.action = "ui_confirm"
+			ev.pressed = true
+			_unhandled_input(ev)
+			return

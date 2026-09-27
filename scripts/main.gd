@@ -30,8 +30,18 @@ func _ready() -> void:
 	add_child(hud)
 	pause_menu = PauseMenu.new()
 	add_child(pause_menu)
+	if Game.touch_mode:
+		var touch := TouchControls.new(self)
+		touch.name = "TouchControls"
+		add_child(touch)
+	if TouchQa.wanted():
+		add_child(TouchQa.new(self))
 	var trailer_title: bool = String(Game.args.get("trailer", "")) == "skies"
-	if Game.args.has("start") or Game.args.has("warp") or Game.args.has("tour") or Game.args.has("bot") or (Game.args.has("trailer") and not trailer_title):
+	if Game.arriving:
+		# sailed in from the other level: straight into play, with the level's greeting
+		Game.arriving = false
+		_begin(false)
+	elif Game.args.has("start") or Game.args.has("warp") or Game.args.has("tour") or Game.args.has("bot") or (Game.args.has("trailer") and not trailer_title):
 		_begin(true)
 	else:
 		_show_title()
@@ -50,6 +60,22 @@ func _ready() -> void:
 		add_child(QaBot.new())
 	if Game.args.has("trailer"):
 		add_child(Trailer.new())
+	player.pounded.connect(func(_w): Game.haptic("heavy"))
+	_announce_ready()
+
+
+## Tells the phone app the game is on screen, once the first frames (and the shaders they
+## need) are drawn, so its splash can open onto a finished picture.
+func _announce_ready() -> void:
+	for i in 3:
+		await RenderingServer.frame_post_draw
+	Game.rn_set_state("ready")
+
+
+## The phone app was left (home button, a call): pause rather than play on unseen.
+func auto_pause() -> void:
+	if playing and not pause_menu.visible and not Game.in_cutscene:
+		pause_menu.open()
 
 
 func _show_title() -> void:
@@ -108,6 +134,22 @@ func _begin(instant: bool) -> void:
 	if not instant:
 		hud.fade(0.0, 0.6)
 		hud.toast(Game.t("Find the %d bronze stars of %s!", "Tìm %d ngôi sao đồng của %s!") % [Game.level_star_total(), Game.level_name()], 4.0)
+		if Game.touch_mode and not Game.touch_tips_seen:
+			_touch_tips()
+
+
+## First run on a phone: three short tips that name the on-screen controls.
+func _touch_tips() -> void:
+	var tips := [
+		Game.t("Left thumb moves you · push further to run", "Ngón trái để di chuyển · đẩy xa hơn để chạy"),
+		Game.t("Big green button jumps · tap again in the air to double jump", "Nút xanh lớn để nhảy · chạm lần nữa trên không để nhảy đôi"),
+		Game.t("Orange dashes · yellow ground-pounds · drag the right side to look", "Nút cam để lướt · nút vàng để dậm · vuốt bên phải để xoay camera"),
+	]
+	for tip in tips:
+		await get_tree().create_timer(4.4).timeout
+		hud.toast(tip, 3.6)
+	Game.touch_tips_seen = true
+	Game.save()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -126,6 +168,9 @@ func resume_after_ending() -> void:
 
 
 func back_to_title() -> void:
+	if Game.has_host():
+		Game.rn_set_state("loading:" + Game.level)
+		await get_tree().create_timer(0.6, true).timeout
 	Game.taken.clear()
 	Game.coins = 0
 	Game.red_coins = 0

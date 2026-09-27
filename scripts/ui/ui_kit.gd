@@ -42,8 +42,10 @@ static func _collect_fonts(path: String, out: Array[String]) -> void:
 	if dir == null:
 		return
 	for f in dir.get_files():
-		if f.ends_with(".ttf") or f.ends_with(".otf"):
-			out.append(path + "/" + f)
+		# an exported pack keeps only the ".import" stub next to each font
+		var n := f.trim_suffix(".import")
+		if (n.ends_with(".ttf") or n.ends_with(".otf")) and not out.has(path + "/" + n):
+			out.append(path + "/" + n)
 	for d in dir.get_directories():
 		_collect_fonts(path + "/" + d, out)
 
