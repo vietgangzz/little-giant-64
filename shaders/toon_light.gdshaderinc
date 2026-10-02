@@ -12,7 +12,7 @@ uniform float rim_width : hint_range(0.0, 1.0) = 0.38;
 void light() {
 	float lit = 1.0;
 #ifdef NO_SUN
-	// deep inside a cave the sun only gets in through the skylight beam
+	// cave stone ignores the sun: the dome's shadow map is too coarse to keep it out cleanly
 	lit = LIGHT_IS_DIRECTIONAL ? 0.0 : 1.0;
 #endif
 	float ndl = dot(NORMAL, LIGHT);

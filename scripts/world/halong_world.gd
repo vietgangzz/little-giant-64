@@ -211,20 +211,7 @@ func _cave() -> void:
 		var ang := deg_to_rad(225.0 + [-80.0, -40.0, 0.0, 40.0, 80.0][k])
 		var d := 18.5 + (k % 2) * 1.5
 		karst(c + Vector3(cos(ang) * d, 0, sin(ang) * d), 4.4 + (k % 3) * 0.5, 17.0 + [3.0, 9.0, 12.0, 7.0, 0.0][k], {"seed": 525 + k})
-	var sign := Label3D.new()
-	sign.text = Game.t("Surprise Cave", "Hang Sửng Sốt")
-	sign.font = UiKit.display_font()
-	sign.font_size = 90
-	sign.outline_size = 20
-	sign.modulate = Color("#fff6d8")
-	sign.outline_modulate = Color(0.05, 0.08, 0.2)
-	sign.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	sign.pixel_size = 0.01
-	sign.position = c + Vector3(1, 0, 1).normalized() * 15.5 + Vector3(0, 7.2, 0)
-	sign.visibility_range_begin = 14.0
-	sign.visibility_range_begin_margin = 3.0
-	sign.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
-	add_child(sign)
+	sign_board("Surprise Cave", "Hang Sửng Sốt", c + Vector3(1, 0, 1).normalized() * 15.5 + Vector3(0, 7.2, 0))
 	# the way up inside: stalagmite pillars to a ledge at the back
 	var steps := [[Vector3(-27.5, 0, -27.0), 1.35, 1.9], [Vector3(-30.8, 0, -25.2), 1.3, 3.5], [Vector3(-34.0, 0, -28.0), 1.3, 5.1], [Vector3(-33.2, 0, -32.4), 1.3, 6.7]]
 	for s in steps:

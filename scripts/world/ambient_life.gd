@@ -6,7 +6,7 @@ extends Node3D
 
 var _gulls: Array = [] ## [node, center, radius, height, speed, angle]
 var _flies: Array = [] ## [node, home, target, t, wings]
-var _kites: Array = [] ## [kite, anchor, base, phase, string]
+var _kites: Array = [] ## [kite, anchor, base, phase, string, tail bows]
 var _sails: Array = [] ## [node, radius, angle, speed]
 var _fish_areas: Array = [] ## [center, radius]
 var _fish_t := 3.0
@@ -101,6 +101,7 @@ func kite(anchor: Vector3, up: float, color: Color, tail_color := Color("#ffd23f
 	tmat.albedo_color = tail_color
 	tmat.cull_mode = BaseMaterial3D.CULL_DISABLED
 	tmat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	var bows: Array[Node3D] = []
 	for i in 6:
 		var bow := MeshInstance3D.new()
 		var q := QuadMesh.new()
@@ -108,8 +109,8 @@ func kite(anchor: Vector3, up: float, color: Color, tail_color := Color("#ffd23f
 		bow.mesh = q
 		bow.material_override = tmat
 		bow.position = Vector3(0, -1.1 - i * 0.32, 0)
-		bow.name = "Tail%d" % i
 		kite.add_child(bow)
+		bows.append(bow)
 	_no_shadow(kite)
 	add_child(kite)
 	var string := MeshInstance3D.new()
@@ -127,7 +128,7 @@ func kite(anchor: Vector3, up: float, color: Color, tail_color := Color("#ffd23f
 	string.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(string)
 	var base := anchor + Vector3(-up * 0.35, up, up * 0.2)
-	_kites.append([kite, anchor, base, _rng.randf() * TAU, string])
+	_kites.append([kite, anchor, base, _rng.randf() * TAU, string, bows])
 
 
 ## Junk boats sailing slowly round the horizon at `radius`.
@@ -180,9 +181,9 @@ func _process(delta: float) -> void:
 		var p: Vector3 = k[2] + Vector3(sin(_t * 0.5 + ph) * 1.8, sin(_t * 0.8 + ph) * 0.9, cos(_t * 0.4 + ph) * 1.2)
 		kite.position = p
 		kite.rotation = Vector3(0.25, sin(_t * 0.3 + ph) * 0.4 - 0.6, sin(_t * 1.1 + ph) * 0.25)
-		for i in 6:
-			var bow := kite.get_node("Tail%d" % i) as Node3D
-			bow.position.x = sin(_t * 3.0 - i * 0.7 + ph) * 0.08 * i
+		var bows: Array[Node3D] = k[5]
+		for i in bows.size():
+			bows[i].position.x = sin(_t * 3.0 - i * 0.7 + ph) * 0.08 * i
 		var s: MeshInstance3D = k[4]
 		var a: Vector3 = k[1]
 		var mid := (a + p) * 0.5

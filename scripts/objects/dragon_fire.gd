@@ -32,6 +32,7 @@ func _ready() -> void:
 	_light.light_color = Color(1.0, 0.6, 0.25)
 	_light.omni_range = 10.0
 	_light.light_energy = 0.0
+	_light.visible = false
 	_light.position = Vector3(0, 0, -2.5)
 	add_child(_light)
 
@@ -90,11 +91,15 @@ func _physics_process(delta: float) -> void:
 	var water := u > period - 2.0 and u < period - 0.4
 	if fire and not _burning:
 		Sound.play_at("dash", global_position, 4.0, 0.55)
-		Fx.shake(0.12, 0.25)
+		# the roar only shakes the camera when you are near the head
+		var cam := get_viewport().get_camera_3d()
+		if cam and cam.global_position.distance_to(global_position) < 25.0:
+			Fx.shake(0.12, 0.25)
 	_burning = fire
 	_fire.emitting = fire
 	_water.emitting = water
 	_light.light_energy = move_toward(_light.light_energy, 3.0 if fire else 0.0, delta * 12.0)
+	_light.visible = _light.light_energy > 0.0
 	if fire:
 		for b in _hurt.get_overlapping_bodies():
 			if b is Player:

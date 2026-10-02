@@ -134,8 +134,8 @@ func _add(text: String, action: Callable) -> void:
 
 
 func _highlight() -> void:
-	# finger-sized on phones, but the whole list must clear the home-indicator edge
-	var k := (1.2 if _items.size() <= 9 else 1.07) if Game.touch_mode else 1.0
+	# finger-sized on phones, but the whole list (11 items) must clear the home-indicator edge
+	var k := 1.07 if Game.touch_mode else 1.0
 	for i in _items.size():
 		var sel := i == _index
 		(_items[i][0] as Label).label_settings = UiKit.style(int((44 if sel else 36) * k), UiKit.LIME if sel else Color(1, 1, 1, 0.85), 10 if sel else 6)

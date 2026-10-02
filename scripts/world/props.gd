@@ -8,6 +8,8 @@ const DIR := "res://assets/models/props/"
 
 static var _scenes: Dictionary = {}
 static var _shapes: Dictionary = {}
+static var _tinted: Dictionary = {} ## shared re-coloured materials (see tint)
+static var _glowing: Dictionary = {} ## shared glowing copies (see glow)
 
 ## Stand-ins: [shape, size, colour]. Shapes are box/cyl/sphere/cone.
 const STANDINS := {
@@ -148,12 +150,14 @@ static func _standin(name: String) -> Node3D:
 
 ## Small set dressing that phones stop drawing past `SMALL_RANGE` metres.
 const SMALL := ["flower_pink", "flower_yellow", "grass_tuft", "mushroom", "beach_chair", "lantern",
-	"silk_lantern_string", "banh_mi_cart", "kayak", "buoy", "net_rack", "fish_cage_ring", "lotus_pad"]
+	"silk_lantern_string", "banh_mi_cart", "kayak", "buoy", "net_rack", "fish_cage_ring"]
 const SMALL_RANGE := 55.0
 
 
 ## Re-colours an imported, toonified prop: `f` maps each surface colour to a new one (return
 ## the same colour to leave a surface alone). `metal` > 0 gives the new surfaces a metal sheen.
+## The new materials are shared, like toonify's, and keep the wind and the outline (or its
+## absence) of the surface they replace.
 static func tint(node: Node, f: Callable, metal := 0.0) -> void:
 	for mi in _meshes(node):
 		for s in mi.mesh.get_surface_count():
@@ -164,9 +168,13 @@ static func tint(node: Node, f: Callable, metal := 0.0) -> void:
 			var nc: Color = f.call(c)
 			if nc == c:
 				continue
-			var nm := Fx.toon_material(nc, metal, m.get_shader_parameter("emission_color"), m.get_shader_parameter("emission_energy")).duplicate() as ShaderMaterial
-			nm.next_pass = Fx.outline_material(nc.darkened(0.62), 0.02)
-			mi.set_surface_override_material(s, nm)
+			var sway: float = m.get_shader_parameter("sway") if m.get_shader_parameter("sway") != null else 0.0
+			var key := "%s|%.2f|%s" % [nc.to_html(), metal, m.next_pass != null]
+			if not _tinted.has(key):
+				var nm := Fx.toon_material(nc, metal, m.get_shader_parameter("emission_color"), m.get_shader_parameter("emission_energy"), sway).duplicate() as ShaderMaterial
+				nm.next_pass = Fx.outline_material(nc.darkened(0.62), 0.02, sway) if m.next_pass != null else null
+				_tinted[key] = nm
+			mi.set_surface_override_material(s, _tinted[key])
 
 
 ## Makes every surface of a prop glow with its own colour (lanterns at dusk).
@@ -179,10 +187,13 @@ static func glow(node: Node, energy := 0.8, only: Callable = Callable()) -> void
 			var c: Color = m.get_shader_parameter("albedo")
 			if only.is_valid() and not only.call(c):
 				continue
-			var nm := m.duplicate() as ShaderMaterial
-			nm.set_shader_parameter("emission_color", c)
-			nm.set_shader_parameter("emission_energy", energy)
-			mi.set_surface_override_material(s, nm)
+			var key := "%d|%.2f" % [m.get_instance_id(), energy]
+			if not _glowing.has(key):
+				var nm := m.duplicate() as ShaderMaterial
+				nm.set_shader_parameter("emission_color", c)
+				nm.set_shader_parameter("emission_energy", energy)
+				_glowing[key] = nm
+			mi.set_surface_override_material(s, _glowing[key])
 
 
 ## Adds trimesh collision for every mesh under `node` (static scenery).

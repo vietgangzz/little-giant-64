@@ -16,6 +16,7 @@ var star_points: Dictionary = {} ## id -> Vector3 (for warps and the map)
 var _crabs_left: Dictionary = {}
 var _drum_rings: Array[MeshInstance3D] = []
 var life: AmbientLife
+var _drifting: Array[Node] = [] ## the drifting clouds, gathered once
 
 
 ## Look settings a level can override before _ready.
@@ -481,7 +482,8 @@ func _add_drum_glow() -> void:
 
 
 func _refresh_drum() -> void:
-	for i in 8:
+	# only Hạ Long Skies has the drum; the other levels leave the ring list empty
+	for i in _drum_rings.size():
 		var lit := Game.has_star(Game.STARS[i]["id"])
 		if lit and not _drum_rings[i].visible:
 			_drum_rings[i].visible = true
@@ -705,6 +707,28 @@ func _clouds() -> void:
 		_no_shadow(prop("cloud", Vector3(cos(a) * d, rng.randf_range(0.8, 3.0), sin(a) * d), rng.randf() * TAU, rng.randf_range(2.5, 5.0)))
 
 
+## A name board floating over a landmark. It hides when the camera is close (it would sit on
+## the HUD) and follows language changes.
+func sign_board(text_en: String, text_vi: String, at: Vector3, size := 90) -> Label3D:
+	var l := Label3D.new()
+	l.text = Game.t(text_en, text_vi)
+	l.font = UiKit.display_font()
+	l.font_size = size
+	l.outline_size = 20
+	l.modulate = Color("#fff6d8")
+	l.outline_modulate = Color(0.12, 0.06, 0.12)
+	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	l.pixel_size = 0.01
+	l.position = at
+	l.visibility_range_begin = 14.0
+	l.visibility_range_begin_margin = 3.0
+	l.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+	l.add_to_group("sign_board")
+	add_child(l)
+	Game.language_changed.connect(func(): l.text = Game.t(text_en, text_vi))
+	return l
+
+
 func _no_shadow(n: Node) -> void:
 	if n is GeometryInstance3D:
 		(n as GeometryInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -713,7 +737,9 @@ func _no_shadow(n: Node) -> void:
 
 
 func _process(delta: float) -> void:
-	for c in get_tree().get_nodes_in_group("cloud"):
+	if _drifting.is_empty():
+		_drifting = get_tree().get_nodes_in_group("cloud")
+	for c in _drifting:
 		var n := c as Node3D
 		n.position.x += n.get_meta("drift", 0.5) * delta
 		if n.position.x > 140.0:

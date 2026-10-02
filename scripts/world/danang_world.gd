@@ -90,26 +90,6 @@ func ambient_life(l: AmbientLife) -> void:
 
 # ------------------------------------------------------------------ helpers
 
-## A Label3D name board floating over a landmark.
-func sign_board(text_en: String, text_vi: String, at: Vector3, size := 90) -> Label3D:
-	var l := Label3D.new()
-	l.text = Game.t(text_en, text_vi)
-	l.font = UiKit.display_font()
-	l.font_size = size
-	l.outline_size = 20
-	l.modulate = Color("#fff6d8")
-	l.outline_modulate = Color(0.12, 0.06, 0.12)
-	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	l.pixel_size = 0.01
-	l.position = at
-	# a name board is for spotting a landmark from afar; up close it would sit on the HUD
-	l.visibility_range_begin = 14.0
-	l.visibility_range_begin_margin = 3.0
-	l.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
-	add_child(l)
-	return l
-
-
 func flower_lantern(pos: Vector3, parent: Node3D = null) -> Coin:
 	var c := Coin.new(true)
 	c.prop_override = "hoa_dang"
@@ -256,8 +236,8 @@ func _gold_dragon() -> void:
 		var p: Vector3 = pts[i]
 		var prev: Vector3 = pts[maxi(i - 1, 0)]
 		var next: Vector3 = pts[mini(i + 1, pts.size() - 1)]
-		var tan := (next - prev) * 0.25
-		curve.add_point(p, -tan, tan)
+		var handle := (next - prev) * 0.25
+		curve.add_point(p, -handle, handle)
 	curve.bake_interval = 0.2
 	var length := curve.get_baked_length()
 	var sc := 1.5
@@ -286,7 +266,7 @@ func _gold_dragon() -> void:
 		body.collision_mask = 0
 		add_child(body)
 		body.global_transform = Transform3D(Basis.looking_at(dir, Vector3.UP), p)
-		var visual := Props.make(names[i], true, true)
+		var visual := Props.make(names[i])
 		visual.rotation.y = PI
 		visual.scale = Vector3.ONE * sc
 		Props.tint(visual, gold, 0.8)
@@ -384,7 +364,6 @@ func _ba_na() -> void:
 		var a := rng.randf() * TAU
 		var d := rng.randf_range(22.0, 34.0)
 		var c := prop("cloud", MOUNTAIN + Vector3(cos(a) * d, rng.randf_range(14.0, 26.0), sin(a) * d), rng.randf() * TAU, rng.randf_range(2.2, 3.6))
-		c.set_meta("drift", 0.0)
 		_no_shadow(c)
 
 
@@ -451,13 +430,13 @@ func _station_deck(top: Vector3, yaw: float, depth: float, ground_y: float) -> v
 	add_child(plat)
 	plat.global_position = Vector3(top.x, 0, top.z)
 	plat.rotation.y = yaw
-	var floor := MeshInstance3D.new()
+	var boards := MeshInstance3D.new()
 	var bm := BoxMesh.new()
 	bm.size = Vector3(7.0, 0.35, depth)
-	floor.mesh = bm
-	floor.material_override = Fx.toon_material(Color("#a0612f"))
-	floor.position.y = top.y - 0.175
-	plat.add_child(floor)
+	boards.mesh = bm
+	boards.material_override = Fx.toon_material(Color("#a0612f"))
+	boards.position.y = top.y - 0.175
+	plat.add_child(boards)
 	box(Vector3(7.0, 0.35, depth), Vector3(0, top.y - 0.175, 0), Basis(), plat)
 	var h := top.y - 0.35 - ground_y
 	for x in [-3.2, 3.2]:
@@ -577,7 +556,7 @@ func _hoi_an() -> void:
 	# 5: on a north-row ridge
 	flower_lantern(Vector3(36.0, TOWN_Y + 5.75, 19.0))
 	_chua_cau(Vector3(37.0, 0, 38.8))
-	# the hoa đăng star waits on An Hội's riverside
+	# the flower-lantern star waits on An Hội's riverside
 	star("hoian_lanterns", Vector3(30.0, TOWN_Y + 1.0, 46.5), "lantern_star")
 	hoian_house(Vector3(44.0, TOWN_Y, 48.0), PI, false)
 	spring(Vector3(40.5, TOWN_Y + 0.25, 46.0), 19.0)
@@ -685,7 +664,7 @@ func _chua_cau(at: Vector3) -> void:
 			_lit(l, 1.2)
 
 
-# ------------------------------------------------------------------ Rừng dừa Bảy Mẫu
+# ------------------------------------------------------------------ the Bảy Mẫu coconut forest
 
 func _coconut_forest() -> void:
 	var spots := [Vector3(54.5, 0, 13.5), Vector3(57.5, 0, 9.8), Vector3(55.0, 0, 6.0), Vector3(58.2, 0, 2.3), Vector3(55.6, 0, -1.6), Vector3(58.6, 0, -5.4)]
@@ -718,8 +697,9 @@ func _coconut_forest() -> void:
 		var clear := true
 		for s in spots:
 			clear = clear and Vector2(p.x - s.x, p.z - s.z).length() > 3.6
-		clear = clear and Vector2(p.x - 60.5, p.z + 11.5).length() > 6.0 and p.z < 12.0 - absf(p.x - 56.0) * 0.0
-		clear = clear and Vector2(p.x - 36.0, (p.z - 25.0) / 0.8 * 1.0).length() > 24.0
+		clear = clear and Vector2(p.x - 60.5, p.z + 11.5).length() > 6.0 and p.z < 12.0
+		# keep off Hội An's island (an ellipse 22.4 x 11.2) with a few metres to spare
+		clear = clear and Vector2((p.x - 36.0) / 22.4, (p.z - 25.0) / 11.2).length() > 1.2
 		if clear:
 			prop("nipa_palm", p, rng.randf() * TAU, rng.randf_range(0.8, 1.2))
 			placed += 1
@@ -744,10 +724,13 @@ func finale(p: Player) -> void:
 	var colors := [Color("#ff5c8a"), Color("#ffd23f"), Color("#4fc3f7"), Color("#d5f64b"), Color("#ff7447"), Color("#ffffff")]
 	for i in 16:
 		await get_tree().create_timer(0.7).timeout
-		var at := p.global_position + Vector3(randf_range(-14, 14), randf_range(12, 20), randf_range(-16, -6))
+		# bursts low over the water all round, so the orbiting camera always catches some
+		var a := randf() * TAU
+		var at := p.global_position + Vector3(cos(a) * randf_range(9, 15), randf_range(5, 11), sin(a) * randf_range(9, 15))
 		var c: Color = colors[i % colors.size()]
-		Fx.sparkle(at, c, 36, 9.0, 0.6, 1.6)
-		Fx.ring(at, Color(c.r, c.g, c.b, 0.9), 7.0, 0.7, Vector3.BACK)
+		Fx.sparkle(at, c, 56, 13.0, 1.5, 1.7)
+		Fx.sparkle(at, Color.WHITE, 20, 6.0, 0.9, 1.0)
+		Fx.ring(at, Color(c.r, c.g, c.b, 0.9), 9.0, 0.7, Vector3.BACK)
 		Sound.play("drum_boom", -10.0, randf_range(1.3, 1.7))
 	await get_tree().create_timer(1.5).timeout
 	conf.emitting = false

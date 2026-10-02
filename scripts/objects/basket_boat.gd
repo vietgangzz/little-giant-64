@@ -1,6 +1,6 @@
 class_name BasketBoat
 extends AnimatableBody3D
-## Thúng chai: a round bamboo basket boat spinning on the spot, the way the Cẩm Thanh
+## A round bamboo basket boat (thúng chai) spinning on the spot, the way the Cẩm Thanh
 ## boatmen show off. Stand in it and it carries you round; it bobs on the swell and dips a
 ## little under your weight.
 
@@ -13,6 +13,7 @@ var _visual: Node3D
 var _base: Vector3
 var _sink := 0.0
 var _sensor: Area3D
+var _riders := 0
 
 
 func _ready() -> void:
@@ -40,14 +41,15 @@ func _ready() -> void:
 	ss.position.y = floor_y + 0.4
 	_sensor.add_child(ss)
 	add_child(_sensor)
+	_sensor.body_entered.connect(func(_b): _riders += 1)
+	_sensor.body_exited.connect(func(_b): _riders = maxi(_riders - 1, 0))
 	_base = position
 	_t = phase
 
 
 func _physics_process(delta: float) -> void:
 	_t += delta
-	var loaded := not _sensor.get_overlapping_bodies().is_empty()
-	_sink = move_toward(_sink, 0.12 if loaded else 0.0, delta * 0.6)
+	_sink = move_toward(_sink, 0.12 if _riders > 0 else 0.0, delta * 0.6)
 	position = _base + Vector3(0, sin(_t * 1.5 + phase) * 0.07 - _sink, 0)
 	rotation.y += spin * delta
 	_visual.rotation.x = sin(_t * 1.2 + phase) * 0.05

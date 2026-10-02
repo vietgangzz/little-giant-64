@@ -96,7 +96,9 @@ var arriving := false ## set by travel(): the next level starts in play, not on 
 var touch_mode := false
 
 ## Command-line switches (after `--`): --start --god --shot=SEC:PATH --warp=ID --tour=DIR
-## --all-stars --bot --lang=vi --quit-after-shot
+## --all-stars --bot --lang=vi --quit-after-shot --level=skies|halong|danang --phone --touch
+## --touch-qa --touch-qa-travel --trailer=CLIP --paused (opens the pause menu) --fps --count
+## --noglow --nofog --debug-hurt (prints where every health pebble is lost)
 var args: Dictionary = {}
 
 
@@ -257,7 +259,7 @@ func level_name(lv := "") -> String:
 	return LEVELS[level if lv == "" else lv][lang]
 
 
-## What this level's eight red collectibles are called (lanterns, pearls, hoa đăng).
+## What this level's eight red collectibles are called (lanterns, pearls, flower lanterns).
 func red_name(lv := "") -> String:
 	return LEVELS[level if lv == "" else lv]["red_" + lang]
 
@@ -303,7 +305,9 @@ func star_name(id: String) -> String:
 
 func hurt(amount := 1) -> void:
 	if args.has("debug-hurt"):
-		print("HURT at ", get_tree().get_first_node_in_group("player").global_position); print_stack()
+		var who := get_tree().get_first_node_in_group("player") as Node3D
+		print("HURT at ", who.global_position if who else Vector3.INF)
+		print_stack()
 	if args.has("god"):
 		return
 	hp = max(0, hp - amount)
