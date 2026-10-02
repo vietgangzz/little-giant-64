@@ -6,7 +6,10 @@ uniform vec4 color : source_color = vec4(0.08, 0.12, 0.1, 1.0);
 uniform float width = 0.018;
 uniform float max_scale = 3.0;
 
+#include "res://shaders/wind.gdshaderinc"
+
 void vertex() {
+	VERTEX += wind_offset(VERTEX, MODEL_MATRIX, MODEL_NORMAL_MATRIX, TIME);
 	vec4 view_pos = MODELVIEW_MATRIX * vec4(VERTEX, 1.0);
 	float grow = width * clamp(-view_pos.z * 0.09, 0.7, max_scale);
 	VERTEX += NORMAL * grow;

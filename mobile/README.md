@@ -13,7 +13,7 @@ This folder runs the Godot game at the repo root inside a React Native app. The 
   - the rainbow LITTLE GIANT / STAR HOP title
   - a loading bar and a gameplay tip
 
-  The splash stays up until the game reports that it has drawn its first frames, including the shaders they need. Then it opens like a Mario 64 iris, from the mascot outwards. When you sail to the other map, it closes the same way over the reload and opens again once the new level is on screen.
+  The splash stays up until the game reports that it has drawn its first frames, including the shaders they need. Then it opens like a Mario 64 iris, from the mascot outwards. When you sail to another map (Hạ Long Skies, Vịnh Hạ Long, Đà Nẵng – Hội An), it closes the same way over the reload and opens again once the new level is on screen.
 - **A bridge to the game** (`src/gameBridge.ts`):
   - JS worklets (react-native-worklets-core) run on the Godot thread and hand a callback to the game's `Game` autoload.
   - The game reports its state through that callback (`boot`, `ready`, `loading:<level>`) and asks for haptics.
@@ -81,7 +81,8 @@ The game can drive its own touch controls:
   ```
 
 - **What it does:** it taps Start on the title, runs with the stick, then jumps, dashes and ground-pounds with the buttons. It drags the camera, and opens and resumes the pause menu.
-- **Results:** each step writes a PASS or FAIL line with numbers, such as metres run or degrees turned.
+- **Results:** each step writes a PASS or FAIL line with numbers, such as metres run or degrees turned. A `kept_health` line checks that no health was lost, and a `perf` line logs fps, draw calls and primitives.
+- **Travel:** with `travel` written in `touch_qa.txt`, it sails on from Hạ Long Skies to Vịnh Hạ Long to Đà Nẵng – Hội An through the pause menu and runs the checks again on each map.
 - **How the touches travel:** they go through `Input.parse_input_event` at window coordinates, so they take the same path as a finger.
 - **On desktop:** `godot --path . --resolution 1400x986 -- --touch-qa --quit` runs the same checks.
 

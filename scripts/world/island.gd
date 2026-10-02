@@ -3,9 +3,10 @@ class_name Island
 extends StaticBody3D
 ## A procedural island: a noisy outline, a gently domed top that rolls over a rounded lip, and
 ## sides that run down into the sea (or taper to a rocky point when `floating`). The same
-## generator makes grass islands, rice-terrace tiers, sand bars and limestone karst towers.
+## generator makes grass islands, rice-terrace tiers, sand bars, limestone karst towers and the
+## pale marble peaks of Ngũ Hành Sơn.
 
-enum Kind { GRASS, SAND, STONE, PADDY, KARST, CAVE }
+enum Kind { GRASS, SAND, STONE, PADDY, KARST, CAVE, MARBLE, PAVED }
 
 const SHADER := preload("res://shaders/island.gdshader")
 const CAVE_SHADER := preload("res://shaders/island_cave.gdshader")
@@ -79,6 +80,8 @@ static func material_for(k: Kind) -> ShaderMaterial:
 	m.set_shader_parameter("spec_strength", 0.0)
 	m.set_shader_parameter("rim_strength", 0.12)
 	m.set_shader_parameter("shadow_floor", 0.5)
+	if k == Kind.CAVE:
+		m.set_shader_parameter("self_light", 0.6)
 	var tex := NoiseTexture2D.new()
 	var n := FastNoiseLite.new()
 	n.frequency = 0.012

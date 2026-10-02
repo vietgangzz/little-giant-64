@@ -21,10 +21,17 @@ func _ready() -> void:
 	build()
 
 
-func _point(theta: float, phi: float, r: float, h: float, noise: FastNoiseLite) -> Vector3:
+func _point(theta: float, phi: float, r: float, h: float, noise: FastNoiseLite, outer := false) -> Vector3:
 	var n := noise.get_noise_3d(cos(phi) * 30.0, theta * 20.0, sin(phi) * 30.0)
 	var rr := r * (1.0 + n * 0.08)
-	return Vector3(sin(theta) * cos(phi) * rr, cos(theta) * h * (1.0 + n * 0.05), sin(theta) * sin(phi) * rr)
+	var hh := h * (1.0 + n * 0.05)
+	if outer:
+		# the outside only ever grows outward (so it never cuts into the cave): weathered
+		# vertical ribs and lumps like the karst towers around it
+		var rib := noise.get_noise_2d(phi * 60.0, theta * 6.0) * 0.5 + 0.5
+		rr += r * 0.11 * rib
+		hh += h * 0.08 * rib
+	return Vector3(sin(theta) * cos(phi) * rr, cos(theta) * hh, sin(theta) * sin(phi) * rr)
 
 
 func _open(theta: float, phi: float) -> bool:
@@ -72,10 +79,10 @@ func _shell(noise: FastNoiseLite, r: float, h: float, inward: bool) -> ArrayMesh
 			var pm := (p0 + p1) * 0.5
 			if _open(tm, pm):
 				continue
-			var a := _point(t0, p0, r, h, noise)
-			var b := _point(t0, p1, r, h, noise)
-			var c := _point(t1, p0, r, h, noise)
-			var d := _point(t1, p1, r, h, noise)
+			var a := _point(t0, p0, r, h, noise, not inward)
+			var b := _point(t0, p1, r, h, noise, not inward)
+			var c := _point(t1, p0, r, h, noise, not inward)
+			var d := _point(t1, p1, r, h, noise, not inward)
 			if inward:
 				st.add_vertex(a); st.add_vertex(b); st.add_vertex(c)
 				st.add_vertex(b); st.add_vertex(d); st.add_vertex(c)

@@ -54,8 +54,8 @@ func _ready() -> void:
 
 # ------------------------------------------------------------------ materials
 
-func toon_material(color: Color, metal := 0.0, emission := Color.BLACK, emission_energy := 0.0) -> ShaderMaterial:
-	var key := "%s|%.2f|%s|%.2f" % [color.to_html(), metal, emission.to_html(), emission_energy]
+func toon_material(color: Color, metal := 0.0, emission := Color.BLACK, emission_energy := 0.0, sway := 0.0) -> ShaderMaterial:
+	var key := "%s|%.2f|%s|%.2f|%.2f" % [color.to_html(), metal, emission.to_html(), emission_energy, sway]
 	if _toon_cache.has(key):
 		return _toon_cache[key]
 	var m := ShaderMaterial.new()
@@ -64,6 +64,7 @@ func toon_material(color: Color, metal := 0.0, emission := Color.BLACK, emission
 	m.set_shader_parameter("metal_sheen", metal)
 	m.set_shader_parameter("emission_color", emission)
 	m.set_shader_parameter("emission_energy", emission_energy)
+	m.set_shader_parameter("sway", sway)
 	if metal > 0.0:
 		m.set_shader_parameter("spec_strength", 0.7)
 		m.set_shader_parameter("spec_gloss", 60.0)
@@ -71,21 +72,23 @@ func toon_material(color: Color, metal := 0.0, emission := Color.BLACK, emission
 	return m
 
 
-func outline_material(color: Color, width := 0.018) -> ShaderMaterial:
-	var key := "%s|%.3f" % [color.to_html(), width]
+func outline_material(color: Color, width := 0.018, sway := 0.0) -> ShaderMaterial:
+	var key := "%s|%.3f|%.2f" % [color.to_html(), width, sway]
 	if _outline_cache.has(key):
 		return _outline_cache[key]
 	var m := ShaderMaterial.new()
 	m.shader = OUTLINE
 	m.set_shader_parameter("color", color)
 	m.set_shader_parameter("width", width)
+	m.set_shader_parameter("sway", sway)
 	_outline_cache[key] = m
 	return m
 
 
 ## Walks an imported scene and swaps every surface material for the toon shader.
-## `outline` adds an ink hull whose colour is a dark shade of the surface.
-func toonify(root: Node, outline := true, width := 0.018, unique := false) -> void:
+## `outline` adds an ink hull whose colour is a dark shade of the surface. `sway` > 0 lets the
+## wind move it (see shaders/wind.gdshaderinc).
+func toonify(root: Node, outline := true, width := 0.018, unique := false, sway := 0.0) -> void:
 	for mi in _meshes(root):
 		var mesh: Mesh = mi.mesh
 		if mesh == null:
@@ -107,14 +110,14 @@ func toonify(root: Node, outline := true, width := 0.018, unique := false) -> vo
 				name = b.resource_name
 			if name.contains("Gold") or name.contains("Bronze") or name.contains("Metal"):
 				metal = maxf(metal, 0.8)
-			var m: ShaderMaterial = toon_material(color, metal, emi, emi_e)
+			var m: ShaderMaterial = toon_material(color, metal, emi, emi_e, sway)
 			if unique:
 				m = m.duplicate()
 			if outline and not name.contains("Eye") and not name.contains("NoLine"):
 				var ink := color.darkened(0.62)
 				ink.s = minf(ink.s * 1.2, 1.0)
 				m = m.duplicate() if not unique else m
-				m.next_pass = outline_material(ink, width)
+				m.next_pass = outline_material(ink, width, sway)
 			mi.set_surface_override_material(s, m)
 
 

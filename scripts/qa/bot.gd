@@ -91,6 +91,24 @@ var ROUTES := {
 	"lanterns": [
 		["collect_red"], ["wait", 1.5], ["warp", Vector3(-38.5, 3.0, -7.5)], ["goto", Vector3(-38.5, 0, -10.5), 0.5], ["stop"], ["wait", 5.0], ["star", "lanterns"],
 	],
+	# ---- Đà Nẵng – Hội An (--level=danang)
+	"dn_dragon": [["dn_dragon_back"], ["stop"], ["wait", 5.0], ["star", "danang_dragon"]],
+	"dn_goldenbridge": [["dn_cable"], ["dn_bridge_walk"], ["stop"], ["wait", 5.0], ["star", "danang_goldenbridge"]],
+	"dn_marble": [["dn_marble_climb"], ["stop"], ["wait", 5.0], ["star", "danang_marble"]],
+	"dn_chuacau": [
+		["warp", Vector3(31.0, 2.2, 25.6)], ["hop", Vector3(31.0, 0, 27.9), 1.9, 0.45], ["stop"], ["wait", 0.3],
+		["hop", Vector3(31.0, 0, 29.4), 1.3, 0.5], ["stop"], ["wait", 0.3],
+		["goto", Vector3(32.6, 0, 32.6), 0.4], ["stop"], ["wait", 0.2],
+		["leap", Vector3(35.9, 0, 33.8), 0.35, false], ["stop"], ["wait", 0.2],
+		["goto", Vector3(37.0, 0, 38.8), 0.35], ["stop"], ["wait", 5.0], ["star", "hoian_bridge"],
+	],
+	"dn_basket": [["warp", Vector3(51.5, 2.0, 18.6)], ["dn_baskets"], ["stop"], ["wait", 5.0], ["star", "hoian_basket"]],
+	"dn_lanterns": [
+		["collect_red"], ["wait", 1.5], ["warp", Vector3(30.0, 2.4, 44.0)], ["goto", Vector3(30.0, 0, 46.5), 0.5], ["stop"], ["wait", 5.0], ["star", "hoian_lanterns"],
+	],
+	"dn_coins": [
+		["collect_coins", 100], ["wait", 1.2], ["reach_star", "danang_coins"], ["stop"], ["wait", 5.0], ["star", "danang_coins"],
+	],
 }
 
 var player: Player
@@ -253,6 +271,84 @@ func _step(step: Array):
 				if player.state == Player.S.RESPAWN:
 					return false
 			return false
+		"dn_dragon_back":
+			# onto the tail, then run the golden back hump by hump to the head
+			var w := get_tree().get_first_node_in_group("world") as DanangWorld
+			var parts := w.gold_dragon
+			player.teleport(parts[parts.size() - 1].global_position + Vector3.UP * 1.8, Vector3.FORWARD)
+			await _wait(0.5)
+			for i in range(parts.size() - 2, -1, -1):
+				if not await _goto(parts[i].global_position, 0.7, 6.0):
+					return Game.in_cutscene
+				if Game.in_cutscene:
+					return true
+			return await _goto(parts[0].global_transform * Vector3(0, 0, -0.6), 0.3) or Game.in_cutscene
+		"dn_cable":
+			# wait on the boarding deck for a cabin, hop on its roof and ride to the summit
+			var w := get_tree().get_first_node_in_group("world") as DanangWorld
+			player.teleport(w.cable_deck + Vector3.UP * 0.6, Vector3.FORWARD)
+			await _wait(0.4)
+			var car: Sampan
+			var t := 0.0
+			while car == null and t < 45.0:
+				for c in w.cable_cars:
+					if c.global_position.distance_to(c.a) < 0.3:
+						car = c
+				await get_tree().physics_frame
+				t += get_physics_process_delta_time()
+			if car == null:
+				return false
+			await _wait(0.4)
+			if not await _leap(car.global_position, 0.3, false, true):
+				return false
+			player.bot_world_dir = Vector3.ZERO
+			t = 0.0
+			while t < 25.0 and car.global_position.distance_to(car.b) > 0.3:
+				var d := (car.global_position - player.global_position) * Vector3(1, 0, 1)
+				player.bot_world_dir = d.normalized() * 0.3 if d.length() > 0.5 else Vector3.ZERO
+				await get_tree().physics_frame
+				t += get_physics_process_delta_time()
+			player.bot_world_dir = Vector3.ZERO
+			_log("  rode to y=%.1f" % player.global_position.y)
+			return player.global_position.y > DanangWorld.UPPER_TOP
+		"dn_bridge_walk":
+			var w := get_tree().get_first_node_in_group("world") as DanangWorld
+			var p0: Vector3 = w.bridge_path[w.bridge_path.size() - 1]
+			var p1: Vector3 = w.bridge_path[w.bridge_path.size() - 2]
+			if not await _goto(p0 + (p0 - p1).normalized() * 2.5, 0.6, 10.0):
+				return false
+			for i in range(w.bridge_path.size() - 1, -1, -1):
+				if Game.in_cutscene:
+					return true
+				if not await _goto(w.bridge_path[i], 0.5, 6.0):
+					return Game.in_cutscene
+			return true
+		"dn_marble_climb":
+			var w := get_tree().get_first_node_in_group("world") as DanangWorld
+			var first: Vector3 = w.marble_ledges[0]
+			var out := (first - w.thuy_son) * Vector3(1, 0, 1)
+			player.teleport(Vector3(first.x, 0, first.z) + out.normalized() * 3.5 + Vector3.UP * 2.2, Vector3.FORWARD)
+			await _wait(0.5)
+			for l in w.marble_ledges:
+				if not await _hop(l, 2.4, 0.55):
+					return false
+				player.bot_world_dir = Vector3.ZERO
+				await _wait(0.3)
+			var last: Vector3 = w.marble_ledges[w.marble_ledges.size() - 1]
+			var edge := w.thuy_son + ((last - w.thuy_son) * Vector3(1, 0, 1)).normalized() * 2.6
+			if not await _hop(edge, 3.5, 0.6):
+				return false
+			return await _goto(w.thuy_son + Vector3(0, 0, 2.6), 0.4)
+		"dn_baskets":
+			var w := get_tree().get_first_node_in_group("world") as DanangWorld
+			for b in w.basket_boats:
+				if not await _leap(b.global_position, 0.35, false):
+					return false
+				player.bot_world_dir = Vector3.ZERO
+				await _wait(0.25)
+			if not await _leap(Vector3(60.5, 0, -9.0), 0.35, false):
+				return false
+			return await _goto(Vector3(60.5, 0, -12.0), 0.35)
 		"back":
 			# step back from the edge of a pillar, away from the next target, to get a run-up
 			var away: Vector3 = (player.global_position - (step[1] as Vector3)) * Vector3(1, 0, 1)

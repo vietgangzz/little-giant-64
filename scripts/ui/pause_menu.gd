@@ -23,13 +23,13 @@ func _ready() -> void:
 	h.set_anchors_preset(Control.PRESET_FULL_RECT)
 	h.offset_left = 120
 	h.offset_right = -120
-	h.offset_top = 90
-	h.offset_bottom = -90
+	h.offset_top = 70
+	h.offset_bottom = -70
 	h.add_theme_constant_override("separation", 80)
 	root.add_child(h)
 	_list = VBoxContainer.new()
 	_list.custom_minimum_size = Vector2(620, 0)
-	_list.add_theme_constant_override("separation", 6)
+	_list.add_theme_constant_override("separation", 2)
 	h.add_child(_list)
 	var stars := VBoxContainer.new()
 	stars.name = "Stars"
@@ -89,10 +89,12 @@ func _rebuild() -> void:
 	_add(Game.t("Invert camera X: ", "Đảo camera X: ") + onoff.call(Game.invert_x), func(): Game.invert_x = not Game.invert_x)
 	_add(Game.t("Invert camera Y: ", "Đảo camera Y: ") + onoff.call(Game.invert_y), func(): Game.invert_y = not Game.invert_y)
 	_add(Game.t("Language: English", "Ngôn ngữ: Tiếng Việt"), Game.toggle_language)
-	var other := "halong" if Game.level == "skies" else "skies"
-	_add(Game.t("Sail to ", "Đi ") + Game.level_name(other), func():
-		close()
-		Game.travel(other))
+	for other in Game.LEVEL_ORDER:
+		if other == Game.level:
+			continue
+		_add(Game.t("Sail to ", "Đi ") + Game.level_name(other), func():
+			close()
+			Game.travel(other))
 	_add(Game.t("Quit to title", "Về màn hình chính"), func():
 		close()
 		get_tree().call_group("main", "back_to_title"))
@@ -117,7 +119,7 @@ func _rebuild() -> void:
 		col.add_child(hint)
 		row.add_child(col)
 		stars.add_child(row)
-	var what := Game.t("Dragon pearls", "Ngọc rồng") if Game.level == "halong" else Game.t("Red lanterns", "Đèn lồng đỏ")
+	var what := Game.red_name()
 	var red := UiKit.label("%s  %d / 8    ·    %s  %d    ·    %s  %d / %d" % [what, Game.red_coins, Game.t("Coins", "Đồng xu"), Game.coins, Game.t("All stars", "Tổng sao"), Game.star_count(), Game.STARS.size()], 26, Color("#ffc9b8"), 6, false)
 	red.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	stars.add_child(red)
@@ -132,7 +134,8 @@ func _add(text: String, action: Callable) -> void:
 
 
 func _highlight() -> void:
-	var k := 1.2 if Game.touch_mode else 1.0 # finger-sized on phones
+	# finger-sized on phones, but the whole list must clear the home-indicator edge
+	var k := (1.2 if _items.size() <= 9 else 1.07) if Game.touch_mode else 1.0
 	for i in _items.size():
 		var sel := i == _index
 		(_items[i][0] as Label).label_settings = UiKit.style(int((44 if sel else 36) * k), UiKit.LIME if sel else Color(1, 1, 1, 0.85), 10 if sel else 6)

@@ -45,12 +45,30 @@ const STARS := [
 		"hint_en": "Board the dragon and run up its back.", "hint_vi": "Lên lưng rồng và chạy tới đầu."},
 	{"id": "halong_pearls", "level": "halong", "en": "Eight Dragon Pearls", "vi": "Tám Viên Ngọc Rồng",
 		"hint_en": "The dragon scattered 8 pearls. The star waits at the pier.", "hint_vi": "Rồng rải 8 viên ngọc. Sao chờ ở bến."},
+	# ---- Đà Nẵng – Hội An
+	{"id": "danang_dragon", "level": "danang", "en": "Head of the Golden Dragon", "vi": "Đầu Rồng Vàng",
+		"hint_en": "Run along Dragon Bridge's golden back to its head.", "hint_vi": "Chạy dọc lưng Cầu Rồng tới đầu rồng."},
+	{"id": "danang_goldenbridge", "level": "danang", "en": "Golden Bridge in the Clouds", "vi": "Cầu Vàng Trên Mây",
+		"hint_en": "Ride the Bà Nà cable car up to the giant hands.", "hint_vi": "Đi cáp treo Bà Nà lên với đôi bàn tay khổng lồ."},
+	{"id": "danang_marble", "level": "danang", "en": "Top of the Marble Mountains", "vi": "Đỉnh Ngũ Hành Sơn",
+		"hint_en": "Climb the marble ledges round Thủy Sơn.", "hint_vi": "Leo các mỏm đá cẩm thạch quanh Thủy Sơn."},
+	{"id": "hoian_bridge", "level": "danang", "en": "Roof of the Japanese Bridge", "vi": "Mái Chùa Cầu",
+		"hint_en": "Hop the old town's roofs over to Chùa Cầu.", "hint_vi": "Nhảy qua mái phố cổ tới Chùa Cầu."},
+	{"id": "hoian_basket", "level": "danang", "en": "Basket Boat Spin", "vi": "Vòng Quay Thúng Chai",
+		"hint_en": "Hop the spinning basket boats in the coconut forest.", "hint_vi": "Nhảy qua các thúng chai xoay vòng trong rừng dừa."},
+	{"id": "hoian_lanterns", "level": "danang", "en": "Eight Flower Lanterns", "vi": "Tám Chiếc Hoa Đăng",
+		"hint_en": "Find the 8 hoa đăng. The star waits by Chùa Cầu.", "hint_vi": "Tìm 8 chiếc hoa đăng. Sao chờ bên Chùa Cầu."},
+	{"id": "danang_coins", "level": "danang", "en": "A Hundred Coins by the Sea", "vi": "Một Trăm Đồng Xu Bên Biển",
+		"hint_en": "Collect 100 coins.", "hint_vi": "Nhặt 100 đồng xu."},
 ]
 
 const LEVELS := {
-	"skies": {"en": "Hạ Long Skies", "vi": "Bầu Trời Hạ Long"},
-	"halong": {"en": "Hạ Long Bay", "vi": "Vịnh Hạ Long"},
+	"skies": {"en": "Hạ Long Skies", "vi": "Bầu Trời Hạ Long", "red_en": "Red lanterns", "red_vi": "Đèn lồng đỏ"},
+	"halong": {"en": "Hạ Long Bay", "vi": "Vịnh Hạ Long", "red_en": "Dragon pearls", "red_vi": "Ngọc rồng"},
+	"danang": {"en": "Đà Nẵng – Hội An", "vi": "Đà Nẵng – Hội An", "red_en": "Flower lanterns", "red_vi": "Hoa đăng"},
 }
+## The order the junk boats sail in (and the touch QA tours).
+const LEVEL_ORDER := ["skies", "halong", "danang"]
 
 var level := "skies"
 var coins := 0
@@ -239,6 +257,11 @@ func level_name(lv := "") -> String:
 	return LEVELS[level if lv == "" else lv][lang]
 
 
+## What this level's eight red collectibles are called (lanterns, pearls, hoa đăng).
+func red_name(lv := "") -> String:
+	return LEVELS[level if lv == "" else lv]["red_" + lang]
+
+
 ## Leaves for another level: session coins and lanterns start over, stars are kept.
 func travel(to: String) -> void:
 	if has_host():
@@ -279,6 +302,8 @@ func star_name(id: String) -> String:
 
 
 func hurt(amount := 1) -> void:
+	if args.has("debug-hurt"):
+		print("HURT at ", get_tree().get_first_node_in_group("player").global_position); print_stack()
 	if args.has("god"):
 		return
 	hp = max(0, hp - amount)

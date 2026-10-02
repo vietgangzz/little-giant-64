@@ -58,6 +58,32 @@ const STANDINS := {
 	"seagull": ["box", Vector3(0.9, 0.1, 0.3), Color("#ffffff")],
 	"net_rack": ["box", Vector3(3, 2, 0.2), Color("#b9a05a")],
 	"vietnam_flag": ["cyl", Vector3(0.1, 3, 0.1), Color("#da251d")],
+	# ---- Đà Nẵng – Hội An
+	"golden_hand": ["box", Vector3(5, 8.6, 4), Color("#8e9488")],
+	"golden_bridge_seg": ["box", Vector3(2.4, 0.3, 2.0), Color("#e7b53c")],
+	"chua_cau": ["box", Vector3(4, 5.6, 12), Color("#9e2a1e")],
+	"hoian_house": ["box", Vector3(5, 5.6, 6), Color("#e8b93e")],
+	"hoian_house_small": ["box", Vector3(4, 3.8, 5), Color("#e8b93e")],
+	"hoa_dang": ["sphere", Vector3(0.6, 0.45, 0.6), Color("#ff6fa3")],
+	"basket_boat": ["cyl", Vector3(2.2, 0.7, 2.2), Color("#2b2622")],
+	"nipa_palm": ["cone", Vector3(2.0, 4.5, 2.0), Color("#5bc24a")],
+	"cable_car": ["box", Vector3(2.4, 2.5, 2.4), Color("#d8342c")],
+	"cable_tower": ["cyl", Vector3(0.6, 14, 0.6), Color("#9aa3ad")],
+	"dragon_bridge_deck": ["box", Vector3(9, 0.4, 10), Color("#4a4e57")],
+	"dragon_bridge_pier": ["box", Vector3(3, 6, 3), Color("#c9d1dd")],
+	"beach_umbrella": ["cone", Vector3(2.8, 2.6, 2.8), Color("#d8b46a")],
+	"beach_chair": ["box", Vector3(0.7, 0.5, 1.8), Color("#a0612f")],
+	"lantern_boat": ["box", Vector3(1.6, 0.6, 4.0), Color("#8a5a35")],
+	"stupa_tower": ["cone", Vector3(2.4, 5, 2.4), Color("#e9e4da")],
+	"banh_mi_cart": ["box", Vector3(1.6, 1.6, 1.0), Color("#3d84c6")],
+	"silk_lantern_string": ["box", Vector3(6, 0.2, 0.2), Color("#e0452b")],
+}
+
+
+## How much the wind moves each kind of foliage (0 or missing = still).
+const SWAY := {
+	"tree_round": 0.35, "tree_palm": 0.45, "bamboo_cluster": 0.55, "grass_tuft": 9.0,
+	"flower_pink": 7.0, "flower_yellow": 7.0, "lotus_flower": 2.0, "nipa_palm": 0.5,
 }
 
 
@@ -73,9 +99,13 @@ static func make(name: String, outline := true, unique := false) -> Node3D:
 		if not _scenes.has(name):
 			_scenes[name] = load(path)
 		node = (_scenes[name] as PackedScene).instantiate()
-		Fx.toonify(node, outline, 0.02, unique)
+		Fx.toonify(node, outline, 0.02, unique, SWAY.get(name, 0.0))
 	else:
 		node = _standin(name)
+	if Game.is_phone() and name in SMALL:
+		for mi in _meshes(node):
+			mi.visibility_range_end = SMALL_RANGE
+			mi.visibility_range_end_margin = 6.0
 	node.name = name
 	return node
 
@@ -114,6 +144,45 @@ static func _standin(name: String) -> Node3D:
 	mi.material_override = Fx.toon_material(spec[2], 0.6 if name in ["coin", "star", "drum_block", "drum_spring", "drum_big"] else 0.0)
 	root.add_child(mi)
 	return root
+
+
+## Small set dressing that phones stop drawing past `SMALL_RANGE` metres.
+const SMALL := ["flower_pink", "flower_yellow", "grass_tuft", "mushroom", "beach_chair", "lantern",
+	"silk_lantern_string", "banh_mi_cart", "kayak", "buoy", "net_rack", "fish_cage_ring", "lotus_pad"]
+const SMALL_RANGE := 55.0
+
+
+## Re-colours an imported, toonified prop: `f` maps each surface colour to a new one (return
+## the same colour to leave a surface alone). `metal` > 0 gives the new surfaces a metal sheen.
+static func tint(node: Node, f: Callable, metal := 0.0) -> void:
+	for mi in _meshes(node):
+		for s in mi.mesh.get_surface_count():
+			var m := mi.get_surface_override_material(s) as ShaderMaterial
+			if m == null:
+				continue
+			var c: Color = m.get_shader_parameter("albedo")
+			var nc: Color = f.call(c)
+			if nc == c:
+				continue
+			var nm := Fx.toon_material(nc, metal, m.get_shader_parameter("emission_color"), m.get_shader_parameter("emission_energy")).duplicate() as ShaderMaterial
+			nm.next_pass = Fx.outline_material(nc.darkened(0.62), 0.02)
+			mi.set_surface_override_material(s, nm)
+
+
+## Makes every surface of a prop glow with its own colour (lanterns at dusk).
+static func glow(node: Node, energy := 0.8, only: Callable = Callable()) -> void:
+	for mi in _meshes(node):
+		for s in mi.mesh.get_surface_count():
+			var m := mi.get_surface_override_material(s) as ShaderMaterial
+			if m == null:
+				continue
+			var c: Color = m.get_shader_parameter("albedo")
+			if only.is_valid() and not only.call(c):
+				continue
+			var nm := m.duplicate() as ShaderMaterial
+			nm.set_shader_parameter("emission_color", c)
+			nm.set_shader_parameter("emission_energy", energy)
+			mi.set_surface_override_material(s, nm)
 
 
 ## Adds trimesh collision for every mesh under `node` (static scenery).

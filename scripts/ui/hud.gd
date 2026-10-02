@@ -113,7 +113,7 @@ func _build_red() -> void:
 	red_box.add_theme_constant_override("separation", 10)
 	red_box.modulate.a = 0.0
 	root.add_child(red_box)
-	red_box.add_child(HudIcon.new(HudIcon.Kind.PEARL if Game.level == "halong" else HudIcon.Kind.LANTERN, 60))
+	red_box.add_child(HudIcon.new({"halong": HudIcon.Kind.PEARL, "danang": HudIcon.Kind.LOTUS}.get(Game.level, HudIcon.Kind.LANTERN), 60))
 	red_label = UiKit.label("0 / 8", 48, Color("#ffd0c4"), 10)
 	red_box.add_child(red_label)
 

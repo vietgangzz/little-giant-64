@@ -82,10 +82,48 @@ PALETTE = {
     "M_Net":         ("#3E8C84", 0.70, 0.0),
     "M_Float":       ("#F2C230", 0.40, 0.0),
     "M_Metal":       ("#B8C2CC", 0.35, 0.40),
+    # --- Đà Nẵng – Hội An level ---
+    "M_Ochre":       ("#E8B93E", 0.70, 0.0),
+    "M_OchreDark":   ("#C9922C", 0.75, 0.0),
+    "M_Shutter":     ("#2F7A6E", 0.50, 0.0),
+    "M_TileRoof":    ("#B5552F", 0.60, 0.0),
+    "M_TileRoofDark": ("#8A3A22", 0.65, 0.0),
+    "M_StoneHand":   ("#8E9488", 0.80, 0.0),
+    "M_StoneHandDark": ("#5F665C", 0.85, 0.0),
+    "M_Moss":        ("#5E8F3E", 0.70, 0.0),
+    "M_GoldBridge":  ("#E7B53C", 0.30, 0.35),
+    "M_Paper":       ("#FFF1D6", 0.60, 0.0),
+    "M_PaperPink":   ("#FF8FB3", 0.55, 0.0),
+    "M_PaperRed":    ("#EE4A5E", 0.55, 0.0),
+    "M_PaperYellow": ("#FFD54A", 0.55, 0.0),
+    "M_Flame":       ("#FFB23A", 0.40, 0.0),
+    "M_Tar":         ("#2B2622", 0.60, 0.0),
+    "M_Woven":       ("#C79A55", 0.70, 0.0),
+    "M_WovenDark":   ("#9C7238", 0.75, 0.0),
+    "M_SilkRed":     ("#E2312B", 0.45, 0.0),
+    "M_SilkYellow":  ("#FFC93A", 0.45, 0.0),
+    "M_SilkPurple":  ("#9A4FD0", 0.45, 0.0),
+    "M_SilkBlue":    ("#3A86E0", 0.45, 0.0),
+    "M_SilkGreen":   ("#3DBA6A", 0.45, 0.0),
+    "M_SilkOrange":  ("#FF8A2B", 0.45, 0.0),
+    "M_SilkPink":    ("#F25FA0", 0.45, 0.0),
+    "M_CableRed":    ("#D8342C", 0.35, 0.0),
+    "M_Glass":       ("#9FD8F0", 0.10, 0.0),
+    "M_Steel":       ("#9AA3AD", 0.40, 0.0),
+    "M_Asphalt":     ("#4A4E57", 0.80, 0.0),
+    "M_Concrete":    ("#CDD0D4", 0.75, 0.0),
+    "M_Marble":      ("#E9E4DA", 0.45, 0.0),
+    "M_Bread":       ("#E3A04A", 0.55, 0.0),
+    "M_Straw":       ("#D9B464", 0.80, 0.0),
+    "M_StrawDark":   ("#B08A44", 0.85, 0.0),
+    "M_LampGlow":    ("#FFF2B8", 0.30, 0.0),
+    "M_Purple":      ("#9A4FD0", 0.45, 0.0),
 }
 
 # emissive-ish roles: (strength); emission colour = base colour
-EMISSIVE = {"M_Pearl": 0.35, "M_Crystal": 0.9}
+EMISSIVE = {"M_Pearl": 0.35, "M_Crystal": 0.9, "M_Flame": 3.0, "M_Paper": 0.35, "M_PaperYellow": 0.5,
+            "M_LampGlow": 1.5, "M_SilkRed": 0.25, "M_SilkYellow": 0.25, "M_SilkPurple": 0.25,
+            "M_SilkBlue": 0.25, "M_SilkGreen": 0.25, "M_SilkOrange": 0.25, "M_SilkPink": 0.25}
 
 
 def srgb_to_linear(c):

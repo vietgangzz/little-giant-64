@@ -109,11 +109,12 @@ func _run() -> void:
 	_check("title_start", main.playing)
 	await _wait(1.0)
 
+	var hp0 := Game.hp
 	# the stick, pushed up: runs away from the camera
 	var tc: TouchControls = main.get_node("TouchControls")
 	var rest := tc._stick_rest()
 	var before := p.global_position
-	await _drag(1, rest, rest + Vector2(0, -150), 0.2, 1.2)
+	await _drag(1, rest, rest + Vector2(0, -150), 0.2, 0.6)
 	var moved := Vector2(p.global_position.x - before.x, p.global_position.z - before.z).length()
 	_check("stick_run", moved > 3.0, "moved %.1f m" % moved)
 	await _wait(0.6)
@@ -128,6 +129,10 @@ func _run() -> void:
 	_touch(2, _button("jump"), false)
 	_check("jump", peak - y0 > 1.0, "rose %.2f m" % (peak - y0))
 	await _wait(1.2)
+
+	# turn back toward the start (pull the stick down), so the dash stays on dry land
+	await _drag(1, rest, rest + Vector2(0, 150), 0.15, 0.3)
+	await _wait(0.5)
 
 	# DASH (from the ground)
 	var seen_dash := false
@@ -167,15 +172,19 @@ func _run() -> void:
 	await _tap(resume.get_global_rect().get_center())
 	await _wait(0.5)
 	_check("pause_resume", not main.pause_menu.visible and not get_tree().paused)
+	_check("kept_health", Game.hp == hp0 and Game.hp == Game.MAX_HP, "hp %d/%d" % [Game.hp, Game.MAX_HP])
+	_say("perf  fps %d  draw calls %d  prims %d" % [Engine.get_frames_per_second(), RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME), RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_PRIMITIVES_IN_FRAME)])
 
-	# optional: sail to the other map from the pause menu (touch_qa.txt containing "travel").
-	# The new level runs these checks again, and does not sail back.
-	if _wants_travel() and Game.level == "skies":
+	# optional: sail on to the next map from the pause menu (touch_qa.txt containing "travel").
+	# Each level runs these checks again; the last one stops.
+	var at := Game.LEVEL_ORDER.find(Game.level)
+	if _wants_travel() and at >= 0 and at < Game.LEVEL_ORDER.size() - 1:
+		var next: String = Game.LEVEL_ORDER[at + 1]
 		await _tap(_button("pause"))
 		await _wait(0.5)
 		for item in main.pause_menu._items:
 			var l: Label = item[0]
-			if l.text.begins_with(Game.t("Sail to", "Đi ")):
+			if l.text == Game.t("Sail to ", "Đi ") + Game.level_name(next):
 				_say("travel  tapping '%s'" % l.text)
 				_say("done  %d failed" % _fails)
 				await _tap(l.get_global_rect().get_center())

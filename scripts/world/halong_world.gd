@@ -54,6 +54,15 @@ func tour_views() -> Array:
 	]
 
 
+func ambient_life(l: AmbientLife) -> void:
+	l.gulls(Vector3(10, 0, -5), 30.0, 22.0, 8)
+	l.gulls(Vector3(32, 0, -2), 10.0, 9.0, 4)
+	l.butterflies(Vector3(28, 0, -36), 7.0, 1.0, 4)
+	l.butterflies(Vector3(0, 0, 0), 5.0, 1.0, 3)
+	l.fish_area(Vector3(5, 0, -5), 90.0)
+	l.horizon_sails(120.0, 6)
+
+
 func ambience() -> void:
 	Sound.ambient("ambient_sea", -10.0)
 	Sound.ambient("ambient_birds", -20.0)
@@ -118,6 +127,7 @@ func _pier() -> void:
 	# the Dragon Pearl shrine: the pearl star appears here
 	star("halong_pearls", _pearl_home + Vector3(0, 0.6, 0), "lantern_star")
 	_travel_boat(Vector3(-10.5, 0.0, 5.0), 0.9, "skies")
+	_travel_boat(Vector3(-2.0, 0.0, 12.5), PI, "danang")
 	pearl(Vector3(-4, 25.4, -14)) # 1: on top of the karst behind the pier (via the dragon)
 
 
@@ -196,6 +206,25 @@ func _cave() -> void:
 	dome.entrance_yaw = atan2(1.0, 1.0) ## toward the pier (south-east)
 	dome.position = c
 	add_child(dome)
+	# limestone towers crowd round the back of the dome, so the cave reads as a mountain
+	for k in 5:
+		var ang := deg_to_rad(225.0 + [-80.0, -40.0, 0.0, 40.0, 80.0][k])
+		var d := 18.5 + (k % 2) * 1.5
+		karst(c + Vector3(cos(ang) * d, 0, sin(ang) * d), 4.4 + (k % 3) * 0.5, 17.0 + [3.0, 9.0, 12.0, 7.0, 0.0][k], {"seed": 525 + k})
+	var sign := Label3D.new()
+	sign.text = Game.t("Surprise Cave", "Hang Sửng Sốt")
+	sign.font = UiKit.display_font()
+	sign.font_size = 90
+	sign.outline_size = 20
+	sign.modulate = Color("#fff6d8")
+	sign.outline_modulate = Color(0.05, 0.08, 0.2)
+	sign.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	sign.pixel_size = 0.01
+	sign.position = c + Vector3(1, 0, 1).normalized() * 15.5 + Vector3(0, 7.2, 0)
+	sign.visibility_range_begin = 14.0
+	sign.visibility_range_begin_margin = 3.0
+	sign.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+	add_child(sign)
 	# the way up inside: stalagmite pillars to a ledge at the back
 	var steps := [[Vector3(-27.5, 0, -27.0), 1.35, 1.9], [Vector3(-30.8, 0, -25.2), 1.3, 3.5], [Vector3(-34.0, 0, -28.0), 1.3, 5.1], [Vector3(-33.2, 0, -32.4), 1.3, 6.7]]
 	for s in steps:
@@ -220,20 +249,8 @@ func _cave() -> void:
 		if Vector2(p.x - c.x, p.z - c.z).normalized().dot(Vector2(1, 1).normalized()) > 0.7:
 			continue
 		prop("crystal_cluster", p, rng.randf() * TAU, rng.randf_range(0.9, 1.6))
-		var l := OmniLight3D.new()
-		l.light_color = Color(0.45, 0.95, 0.9)
-		l.light_energy = 2.2
-		l.omni_range = 7.0
-		l.position = p + Vector3.UP * 0.8
-		add_child(l)
 	for p in [Vector3(-25, 0.7, -33), Vector3(-36, 0.7, -24), Vector3(-34, 0.7, -35)]:
 		prop("stalagmite", p, rng.randf() * TAU, rng.randf_range(0.8, 1.3))
-	var warm := OmniLight3D.new()
-	warm.light_color = Color(1.0, 0.72, 0.45)
-	warm.light_energy = 2.2
-	warm.omni_range = 16.0
-	warm.position = c + Vector3(0, 6, 0)
-	add_child(warm)
 	var shaft := Node3D.new()
 	shaft.position = c + Vector3(0, 0.6, 0)
 	add_child(shaft)
@@ -255,7 +272,7 @@ func _trong_mai() -> void:
 	coin_line(Vector3(-24.8, 2.0, 25.0), Vector3(-24.8, 7.0, 25.0), 5)
 	coin_ring(Vector3(-24.5, 1.6, 25.0), 4.6, 8)
 	checkpoint(Vector3(-21.0, 0.9, 29.5), PI)
-	crab(Vector3(-25.0, 0.9, 29.0), 2.5)
+	crab(Vector3(-27.0, 0.9, 20.8), 1.6)
 
 
 func _titop() -> void:
@@ -346,9 +363,6 @@ func _bay_karsts() -> void:
 	island(Vector3(-15.8, 0, 3.8), 1.8, 1.0, Island.Kind.STONE, {"dome": 0.1, "seed": 570})
 	# a lone pearl out over the water: dash to it from the village rafts
 	pearl(Vector3(15.2, 2.2, 5.5)) # 8
-	for i in 10:
-		var a := randf() * TAU
-		prop("seagull", Vector3(cos(a) * 30.0, randf_range(10.0, 22.0), sin(a) * 30.0), a, 1.0)
 
 
 func _junk_ferry() -> void:

@@ -26,13 +26,20 @@ const MIN_SPLASH_MS = 1800;
 /** If the game never reports in (a broken bridge), open anyway. */
 const FALLBACK_MS = 15000;
 
-const LEVELS: Record<string, string> = { skies: "Hạ Long Skies", halong: "Vịnh Hạ Long" };
+const LEVELS: Record<string, string> = {
+  skies: "Hạ Long Skies",
+  halong: "Vịnh Hạ Long",
+  danang: "Đà Nẵng – Hội An",
+};
 const TIPS = [
   "Jump again in the air for a double jump",
   "Jump just as you land to jump higher",
   "Ground-pound a spring drum for a super bounce",
   "Every 50 coins restores a health pebble",
-  "The junk boat sails between the two maps",
+  "Junk boats sail between the three maps",
+  "Dragon Bridge breathes fire. Mind the far end of the road!",
+  "Ride the Bà Nà cable car up to the Golden Bridge",
+  "Basket boats spin. Time your hops!",
 ];
 
 export default function App() {

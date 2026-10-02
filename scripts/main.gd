@@ -14,7 +14,10 @@ var _title_angle := 0.0
 
 func _ready() -> void:
 	add_to_group("main")
-	world = HalongWorld.new() if Game.level == "halong" else World.new()
+	match Game.level:
+		"halong": world = HalongWorld.new()
+		"danang": world = DanangWorld.new()
+		_: world = World.new()
 	world.name = "World"
 	add_child(world)
 	player = Player.new()
@@ -25,6 +28,10 @@ func _ready() -> void:
 	add_child(camera)
 	world.player = player
 	world.camera = camera
+	# stand the hero on the spawn point at once: a fresh Player sits at the origin, inside the
+	# home island, and sailing in used to drop it through into the sea during the fade (−2 HP)
+	player.teleport(world.spawn_point, Vector3.FORWARD)
+	player.set_checkpoint(world.spawn_point)
 	camera.attach(player)
 	hud = Hud.new()
 	add_child(hud)
@@ -40,6 +47,7 @@ func _ready() -> void:
 	if Game.arriving:
 		# sailed in from the other level: straight into play, with the level's greeting
 		Game.arriving = false
+		player.lock(true)
 		_begin(false)
 	elif Game.args.has("start") or Game.args.has("warp") or Game.args.has("tour") or Game.args.has("bot") or (Game.args.has("trailer") and not trailer_title):
 		_begin(true)
@@ -56,6 +64,8 @@ func _ready() -> void:
 		_shots(String(Game.args["shot"]))
 	if Game.args.has("tour"):
 		_tour(String(Game.args["tour"]))
+	if Game.args.has("paused"):
+		get_tree().create_timer(1.0).timeout.connect(func(): pause_menu.open())
 	if Game.args.has("bot"):
 		add_child(QaBot.new())
 	if Game.args.has("trailer"):

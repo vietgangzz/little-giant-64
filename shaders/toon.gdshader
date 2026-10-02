@@ -10,6 +10,11 @@ uniform vec4 flash_color : source_color = vec4(1.0);
 uniform float dissolve : hint_range(0.0, 1.0) = 0.0;
 
 #include "res://shaders/toon_light.gdshaderinc"
+#include "res://shaders/wind.gdshaderinc"
+
+void vertex() {
+	VERTEX += wind_offset(VERTEX, MODEL_MATRIX, MODEL_NORMAL_MATRIX, TIME);
+}
 
 void fragment() {
 	vec3 c = albedo.rgb;

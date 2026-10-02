@@ -5,8 +5,8 @@ Vietnamese flag cape. The mascot is
 modelled, rigged and animated in **Blender 5.2** from the approved brand vectors. The game runs in
 **Godot 4.7** (Forward+).
 
-There are two levels, and a junk boat moored in each one sails you to the other. You can also
-travel from the pause menu.
+There are three levels, linked by junk boats moored on their shores. You can also sail to any
+level from the pause menu.
 
 It also runs on iPhone inside a React Native app, with touch controls, haptics and a Skia +
 Reanimated splash: see [mobile/README.md](mobile/README.md).
@@ -17,6 +17,14 @@ Reanimated splash: see [mobile/README.md](mobile/README.md).
 - **Vịnh Hạ Long (Hạ Long Bay)** is an emerald bay full of limestone towers with a floating fishing
   village and Surprise Cave. A dragon circles the whole bay, and you can ride on its back. It has
   6 stars and 8 dragon pearls.
+- **Đà Nẵng – Hội An** is the central coast at golden hour, with 7 stars, 8 hoa đăng flower lanterns
+  and 131 coins:
+  - Mỹ Khê beach is home.
+  - Dragon Bridge's golden dragon arches over the Hàn river, breathing fire, then water.
+  - The Bà Nà cable car climbs to the Golden Bridge, held up by two giant stone hands.
+  - The Marble Mountains rise to the west.
+  - Lantern-lit Hội An and the Japanese Covered Bridge lie south-east.
+  - Basket boats spin in the Bảy Mẫu coconut forest.
 
 ![title](docs/shots/title.png)
 
@@ -65,21 +73,36 @@ Every 50 coins restores one pebble.
 | 5 | Star on the Dragon's Head | Board at the "Dragon stop" jetty, then run up its back |
 | 6 | Eight Dragon Pearls | One is on the dragon, one rides the junk ferry; the star appears at the pier |
 
+### Đà Nẵng – Hội An stars
+
+| | Star | Where |
+|---|---|---|
+| 1 | Head of the Golden Dragon | Climb onto Dragon Bridge's tail and run along the humps to the head |
+| 2 | Golden Bridge in the Clouds | Ride the Bà Nà cable car up, then walk out between the stone hands |
+| 3 | Top of the Marble Mountains | Seven marble ledges spiral up Thủy Sơn to the stupa |
+| 4 | Roof of the Japanese Bridge | From a crate onto a shophouse roof, then across to Chùa Cầu's ridge |
+| 5 | Basket Boat Spin | Hop six spinning thúng chai to the coconut islet |
+| 6 | Eight Flower Lanterns | Find all 8 hoa đăng (one on a cable car, one on a lantern boat, one in a basket boat…); the star appears on An Hội |
+| 7 | A Hundred Coins by the Sea | Collect 100 coins |
+
 ## How it's made
 
 ```
 blender/          Python generators for every model (.blend sources are rebuilt from them)
   mascot/         build_mascot.py + mascot_anims.py → assets/models/mascot.glb
-  props/          build_props.py (+ modules) → assets/models/props/*.glb (30 props)
+  props/          build_props.py (+ modules) → assets/models/props/*.glb (66 props over three levels)
   common/         brand SVG paths (mascot_artwork.json) and the SVG parser
 assets/           glTF models, Ogg audio, fonts, CREDITS.md
 scripts/
   autoload/       Game (state, save, input map, CLI flags), Sound, Fx (toon materials + VFX)
   player/         Player (controller state machine), PlayerModel (anims, spring bones, squash)
   camera/         GameCamera: SM64-style follow cam
-  world/          World (Hạ Long Skies) and HalongWorld (Hạ Long Bay), both built in code; Island
-                  (procedural @tool islands and karsts), CaveDome (a hollow cave), Props
-  objects/        coins, stars, blocks, spring drums, flags, crabs, crushers, boats, lotus, jelly…
+  world/          World (Hạ Long Skies), HalongWorld (Hạ Long Bay) and DanangWorld (Đà Nẵng – Hội
+                  An), all built in code; Island (procedural @tool islands, karsts, marble peaks,
+                  paved streets), CaveDome (a hollow cave), AmbientLife (gulls, butterflies, leaping
+                  fish, kites, far sails), Props
+  objects/        coins, stars, blocks, spring drums, flags, crabs, crushers, boats, lotus, jelly,
+                  basket boats, the Dragon Bridge's fire…
   ui/             HUD, title, pause, rainbow headlines
   qa/bot.gd       plays every star route with real inputs
 shaders/          toon light, ink outline, island ground, sea with shore foam, sky, FX
@@ -93,7 +116,8 @@ shaders/          toon light, ink outline, island ground, sea with shore foam, s
   rays and the cape trail and bounce.
 - **Look:** a toon light model with cool-tinted shadows, a spec dot and a rim; inverted-hull ink
   outlines; world-space checkered grass with striped soil; and a sea shaded by real water depth with
-  foam rings round every shore. It also uses AgX tonemapping, glow, SSAO, depth fog and far
+  foam rings round every shore. Trees, palms, bamboo, grass and flowers sway in the wind, a
+  per-prop vertex push shared by the toon and outline shaders (`shaders/wind.gdshaderinc`). It also uses AgX tonemapping, glow, SSAO, depth fog and far
   depth-of-field.
 - **Audio:** everything is sampled, from Kevin MacLeod, Juhani Junkala, Kenney and CC0 field
   recordings. See [assets/CREDITS.md](assets/CREDITS.md).
@@ -113,6 +137,7 @@ godot --headless --path . --import      # REQUIRED: a running game reads the old
 godot --headless --path . --fixed-fps 60 -- --bot=all
 godot --headless --path . --fixed-fps 60 -- --bot=karst --trace     # one route, with a state trace
 godot --headless --path . --fixed-fps 60 -- --level=halong --bot=hl_village,hl_cave,hl_trongmai,hl_dragon,hl_titop,hl_pearls
+godot --headless --path . --fixed-fps 60 -- --level=danang --bot=dn_dragon,dn_goldenbridge,dn_marble,dn_chuacau,dn_basket,dn_lanterns,dn_coins
 
 godot --path . -- --tour=/tmp/tour                  # screenshots of every area
 godot --path . -- --start --warp=pagoda             # jump straight to a star (ids in Game.STARS)
@@ -126,6 +151,9 @@ Test runs (`--bot`, `--warp`, `--god`, `--tour`, `--shot`) never write the save 
 ```bash
 godot --path . -- --touch                    # the phone controls on desktop (the mouse acts as a finger)
 godot --path . --resolution 1400x986 -- --touch-qa --quit   # plays the touch controls itself: PASS/FAIL per control
+godot --path . --resolution 1400x986 -- --touch-qa --touch-qa-travel --phone   # …then sails on through all three levels
+godot --path . -- --level=danang --start --paused   # opens the pause menu (layout checks)
+godot --path . -- --debug-hurt                      # prints where and why every health pebble is lost
 ```
 
 ## Export

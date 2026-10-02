@@ -1,8 +1,9 @@
 class_name HudIcon
 extends Control
-## Hand-drawn HUD icons: the đồng xu coin, the bronze star, a red lantern and a health pip.
+## Hand-drawn HUD icons: the đồng xu coin, the bronze star, a red lantern, a dragon pearl, a
+## hoa đăng flower lantern and a health pip.
 
-enum Kind { COIN, STAR, LANTERN, HEART, PEARL }
+enum Kind { COIN, STAR, LANTERN, HEART, PEARL, LOTUS }
 
 var kind := Kind.COIN
 var filled := true
@@ -45,6 +46,19 @@ func _draw() -> void:
 			draw_circle(c, r * 0.8, Color("#e9e4ff") if filled else Color(0.5, 0.5, 0.6, 0.5))
 			draw_circle(c - Vector2(r * 0.22, r * 0.22), r * 0.3, Color(1, 1, 1, 0.95))
 			draw_arc(c, r * 0.9, PI * 0.1, PI * 1.1, 24, UiKit.GOLD, 4.0)
+		Kind.LOTUS:
+			# hoa đăng: a paper lotus with a candle flame
+			var on := filled
+			_ellipse(c + Vector2(0, r * 0.55 + 3), Vector2(r * 0.95, r * 0.28), Color(0.05, 0.08, 0.2, 0.45))
+			for i in 5:
+				var a := lerpf(-PI * 0.85, -PI * 0.15, i / 4.0)
+				var tip := c + Vector2(cos(a) * r * 0.95, sin(a) * r * 0.75 + r * 0.45)
+				var base := c + Vector2(0, r * 0.5)
+				var side := Vector2(-sin(a), cos(a)) * r * 0.22
+				draw_colored_polygon(PackedVector2Array([base - side, tip, base + side]), Color("#ff6fa3") if on else Color(0.5, 0.5, 0.6, 0.5))
+			_ellipse(c + Vector2(0, r * 0.5), Vector2(r * 0.9, r * 0.24), Color("#e0452b") if on else Color(0.4, 0.4, 0.5, 0.5))
+			draw_rect(Rect2(c + Vector2(-r * 0.09, -r * 0.05), Vector2(r * 0.18, r * 0.42)), Color("#fff1d6"))
+			_ellipse(c + Vector2(0, -r * 0.22), Vector2(r * 0.13, r * 0.22), Color("#ffb23a") if on else Color(0.6, 0.6, 0.7, 0.5))
 		Kind.HEART:
 			# a tiny Little Giant pebble: lime when full, grey when lost
 			var col := UiKit.LIME if filled else Color(0.35, 0.4, 0.5, 0.55)

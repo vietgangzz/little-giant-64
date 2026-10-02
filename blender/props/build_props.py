@@ -28,7 +28,7 @@ if HERE not in sys.path:
 import lib  # noqa: E402
 
 MODULES = ["lib", "motifs", "p_collect", "p_blocks", "p_nature", "p_structures", "p_crab", "p_cave",
-           "p_dragon", "p_halong", "render"]
+           "p_dragon", "p_halong", "p_hoian", "p_danang", "render"]
 for _m in MODULES:
     if _m in sys.modules:
         importlib.reload(sys.modules[_m])
@@ -85,9 +85,30 @@ PROPS = [
     ("seagull", "p_halong", "seagull"),
     ("net_rack", "p_halong", "net_rack"),
     ("vietnam_flag", "p_halong", "vietnam_flag"),
+    # --- level 3: Đà Nẵng – Hội An ---
+    ("golden_hand", "p_danang", "golden_hand"),
+    ("golden_bridge_seg", "p_danang", "golden_bridge_seg"),
+    ("cable_car", "p_danang", "cable_car"),
+    ("cable_tower", "p_danang", "cable_tower"),
+    ("dragon_bridge_deck", "p_danang", "dragon_bridge_deck"),
+    ("dragon_bridge_pier", "p_danang", "dragon_bridge_pier"),
+    ("stupa_tower", "p_danang", "stupa_tower"),
+    ("beach_umbrella", "p_danang", "beach_umbrella"),
+    ("beach_chair", "p_danang", "beach_chair"),
+    ("banh_mi_cart", "p_danang", "banh_mi_cart"),
+    ("chua_cau", "p_hoian", "chua_cau"),
+    ("hoian_house", "p_hoian", "hoian_house"),
+    ("hoian_house_small", "p_hoian", "hoian_house_small"),
+    ("hoa_dang", "p_hoian", "hoa_dang"),
+    ("basket_boat", "p_hoian", "basket_boat"),
+    ("nipa_palm", "p_hoian", "nipa_palm"),
+    ("lantern_boat", "p_hoian", "lantern_boat"),
+    ("silk_lantern_string", "p_hoian", "silk_lantern_string"),
 ]
-# contact-sheet groups: props from FIRST_HALONG on render into halong_sheet_*.png
+# contact-sheet groups: props from FIRST_HALONG on render into halong_sheet_*.png, and from
+# FIRST_DANANG on into danang_sheet_*.png
 FIRST_HALONG = "junk_boat"
+FIRST_DANANG = "golden_hand"
 
 
 def parse_args():
@@ -215,9 +236,10 @@ def main():
         importlib.reload(render)
         rdir = os.path.join(HERE, "renders")
         names = [p[0] for p in PROPS]
-        split = names.index(FIRST_HALONG)
-        groups = (("sheet", [c for c in built if names.index(c.name) < split]),
-                  ("halong_sheet", [c for c in built if names.index(c.name) >= split]))
+        s1, s2 = names.index(FIRST_HALONG), names.index(FIRST_DANANG)
+        groups = (("sheet", [c for c in built if names.index(c.name) < s1]),
+                  ("halong_sheet", [c for c in built if s1 <= names.index(c.name) < s2]),
+                  ("danang_sheet", [c for c in built if names.index(c.name) >= s2]))
         per = 12
         for prefix, cols in groups:
             if not cols:

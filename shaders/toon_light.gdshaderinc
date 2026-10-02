@@ -10,15 +10,20 @@ uniform float rim_strength : hint_range(0.0, 2.0) = 0.28;
 uniform float rim_width : hint_range(0.0, 1.0) = 0.38;
 
 void light() {
+	float lit = 1.0;
+#ifdef NO_SUN
+	// deep inside a cave the sun only gets in through the skylight beam
+	lit = LIGHT_IS_DIRECTIONAL ? 0.0 : 1.0;
+#endif
 	float ndl = dot(NORMAL, LIGHT);
 	float band = smoothstep(shade_offset - shade_softness, shade_offset + shade_softness, ndl);
 	band *= ATTENUATION;
 	vec3 dark = shadow_tint.rgb * shadow_floor;
-	DIFFUSE_LIGHT += LIGHT_COLOR / PI * mix(dark, vec3(1.0), band);
+	DIFFUSE_LIGHT += LIGHT_COLOR / PI * mix(dark, vec3(1.0), band) * lit;
 	vec3 h = normalize(VIEW + LIGHT);
 	float s = pow(max(dot(NORMAL, h), 0.0), spec_gloss);
 	s = smoothstep(0.45, 0.55, s) * spec_strength * band;
 	float rim = 1.0 - max(dot(NORMAL, VIEW), 0.0);
 	rim = smoothstep(1.0 - rim_width, 1.0 - rim_width + 0.08, rim) * rim_strength * clamp(ndl + 0.3, 0.0, 1.0) * ATTENUATION;
-	SPECULAR_LIGHT += (s + rim) * LIGHT_COLOR / PI;
+	SPECULAR_LIGHT += (s + rim) * LIGHT_COLOR / PI * lit;
 }

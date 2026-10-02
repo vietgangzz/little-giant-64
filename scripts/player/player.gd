@@ -72,6 +72,10 @@ var bot_dash := false
 var bot_pound := false
 var bot_jump_hold := false
 var bot_world_dir := Vector3.ZERO ## QA bot steering in world space
+## Frames to ignore moving platforms after a teleport or respawn. Godot keeps following the
+## last floor, and a spinning basket boat's velocity measured 40 m away flings the hero.
+var _platform_mute := 0
+var _platform_layers := 0
 
 
 func _ready() -> void:
@@ -81,6 +85,7 @@ func _ready() -> void:
 	floor_stop_on_slope = true
 	floor_constant_speed = true
 	platform_on_leave = CharacterBody3D.PLATFORM_ON_LEAVE_ADD_UPWARD_VELOCITY
+	_platform_layers = platform_floor_layers
 	safe_margin = 0.02
 	collision_layer = 2
 	collision_mask = 1 | 8
@@ -214,6 +219,11 @@ func _physics_process(delta: float) -> void:
 				velocity.y = -0.5
 
 	var vy_before := velocity.y
+	if _platform_mute > 0:
+		_platform_mute -= 1
+		platform_floor_layers = 0
+	else:
+		platform_floor_layers = _platform_layers
 	move_and_slide()
 	_after_move(delta, vy_before)
 	model.update_visual(self, delta)
@@ -635,6 +645,7 @@ func _respawn(to_checkpoint: bool) -> void:
 	tw.tween_callback(func():
 		global_position = target + Vector3.UP * 0.3
 		velocity = Vector3.ZERO
+		_platform_mute = 3
 		if to_checkpoint:
 			Game.hp = Game.MAX_HP
 			Game.health_changed.emit(Game.hp)
@@ -657,6 +668,7 @@ func lock(on: bool) -> void:
 func teleport(where: Vector3, face := Vector3.ZERO) -> void:
 	global_position = where
 	velocity = Vector3.ZERO
+	_platform_mute = 3
 	if face != Vector3.ZERO:
 		facing = Vector3(face.x, 0, face.z).normalized()
 	_safe.clear()

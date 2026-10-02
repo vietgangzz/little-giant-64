@@ -22,7 +22,8 @@ Outputs:
 
 - `blender/props/props.blend`: one collection per prop, laid out in a row along +X.
 - `assets/models/props/<name>.glb`: glTF binary, +Y up, modifiers applied, no cameras or lights.
-- `blender/props/renders/sheet_*.png` (Hạ Long Skies) and `renders/halong_sheet_*.png` (Vịnh Hạ Long):
+- `blender/props/renders/sheet_*.png` (Hạ Long Skies), `renders/halong_sheet_*.png` (Vịnh Hạ Long) and
+  `renders/danang_sheet_*.png` (Đà Nẵng – Hội An):
   EEVEE contact sheets, 4 × 3 tiles, 1600 px wide. Per-prop tiles are in `renders/tiles/`.
 
 A full build takes about 6 s, and rendering takes about 15 s more.
@@ -42,6 +43,8 @@ A full build takes about 6 s, and rendering takes about 15 s more.
 | `p_halong.py` | Hạ Long: junk_boat, raft_house, raft_platform, fish_cage_ring, kayak, pavilion_titop, buoy, seagull, net_rack, vietnam_flag |
 | `p_cave.py` | Hạ Long: pearl, stalactite, stalagmite, crystal_cluster |
 | `p_dragon.py` | Hạ Long: dragon_head, dragon_body, dragon_tail, dragon_leg |
+| `p_danang.py` | Đà Nẵng: golden_hand, golden_bridge_seg, cable_car, cable_tower, dragon_bridge_deck, dragon_bridge_pier, stupa_tower, beach_umbrella, beach_chair, banh_mi_cart |
+| `p_hoian.py` | Hội An: chua_cau, hoian_house, hoian_house_small, hoa_dang, basket_boat, nipa_palm, lantern_boat, silk_lantern_string; plus the shared `Kit`, `gable_roof` (yin-yang tiles) and `silk_lantern` helpers |
 | `render.py` | contact-sheet renderer |
 
 ## Props
@@ -110,6 +113,35 @@ goes on the last joint. The cross-section is Ø 1.3 with a flat walkable **saddl
 height on the head's neck, every body segment and the start of the tail. The saddle is about 0.66 m wide at the segment centre
 and 0.46 m at the joints. Low gold spikes line both edges of the saddle, so the middle strip stays clear. The shingled scale plates cover
 only the flanks. The belly is gold.
+
+## Level 3: Đà Nẵng – Hội An
+
+Axes as above (Godot X × Y × Z; Godot +Z is the front). "Glows" means the role material is emissive.
+
+| glb | tris | size (X × Y × Z) | key heights / notes |
+|---|---:|---|---|
+| golden_hand | 3568 | 6.58 × 9.39 × 4.79 | Bà Nà stone hand. Fingers point **+X**; the heel pad (x −2.15…−1.25), palm top and all four fingertips top out at **8.60** (the cradle runs x −2.15 → ≈ +2.95, z ±1.38). The thumb rises beside it on the +Z side to 9.39 (z ≈ +1.5…+2.3), clear of a 2.4 m deck. Mossy outcrop base Ø ≈ 4.6 |
+| golden_bridge_seg | 1796 | 2.62 × 1.58 × 2.06 | runs along Z, tiles every **2 m** (z −1…+1). **Deck top 0.30**, gold girder bottom **−0.20**. Gold railings at x = ±1.15, top rail 1.30 (post balls 1.385); posts at z = +1 and 0 only, so tiling gives a post every metre. Flower pots at x = ±0.95: the clear walkway is x ±0.85 |
+| cable_car | 820 | 2.47 × 4.66 × 2.65 | **flat roof top 2.50** (free to stand on except the hanger at z = −0.9). Grip box x ±0.16, z −0.4…−1.4, y 4.22…4.54; **the cable runs along Z at x = 0, y = 4.40**. Origin = floor bottom |
+| cable_tower | 1320 | 5.00 × 14.20 × 3.20 | cross-arm (along X) 13.0…13.4; sheave wheels at x = ±2.0, centre 13.8, **tops 14.20** (cables along Z rest there) |
+| dragon_bridge_deck | 1128 | 9.00 × 7.57 × 10.00 | origin = road surface centre, **road top 0.0**, x ±3.5; footways x 3.5…4.5 **top 0.15** (kerb 0.17); railings x ±4.42 (top 1.19); lamps reach 6.37 (glow `M_LampGlow` at 6.04); side girders x ±3.0…4.4 down to **−1.20**; tiles every **10 m** along Z |
+| dragon_bridge_pier | 236 | 9.00 × 4.80 × 3.20 | same origin as the deck: cap top **−1.20** (x ±4.5, z ±1.6), cap bottom −3.3, column x ±1.5 × z ±1.3 down to **−6.0** |
+| stupa_tower | 3396 | 2.56 × 4.80 × 2.96 | five hexagonal marble tiers with flared terracotta roofs, plinth r 1.25 × 0.35, gold finial to 4.80 |
+| beach_umbrella | 572 | 2.88 × 3.10 × 3.02 | thatched canopy Ø ≈ 2.85, rim at ≈ 1.9, apex 2.78, pole 2.75, knob 3.10 |
+| beach_chair | 288 | 0.74 × 1.02 × 1.88 | seat slats top 0.39, backrest at −Z up to 1.02 |
+| banh_mi_cart | 3640 | 1.82 × 2.00 × 1.27 | "BÁNH MÌ" sign (Baloo 2) on the front, case of baguettes, canopy top 2.00, wheels on ±X, handle at −Z |
+| chua_cau | 9212 | 6.95 × 6.34 × 13.63 | Japanese Covered Bridge, long axis **Z**. Arched deck: **1.00** at z = ±4.5, **1.60** at the middle (y = 1.6 − 0.6·(z/4.5)²), deck x ±1.6, walkable inside the balustrade x ±1.45. Steps z ±4.5…±6.0 at 0.75 / 0.50 / 0.25. Pillars x ±1.55, red beams 3.45…3.65. Main roof: **eaves 3.80 at x ±2.35** (tile end caps to ±2.43), **ridge 5.60** (ridge cap 5.76, curled ends ≈ 6.3), roof z −6.35…+6.35. Temple room on **+X**: stone base x 1.70…3.75 × z ±1.40 up to 1.45, wooden room x 1.75…3.70 × z ±1.30 up to 3.25, its own roof ridge along X (x 1.55…4.10) at 4.25, eaves 3.10 at z ±1.75. Guardian statues on pedestals at x ±1.65, z ±5.6 |
+| hoian_house | 5440 | 5.62 × 5.74 × 7.43 | two-storey shophouse. Walls x ±2.5 × z ±3.0 on a 0.2 plinth. Main roof (ridge along X): **ridge 5.60 at z = 0, eaves 4.20 at z = ±3.40**, x ±2.75, slabs 0.14 thick with a 0.1 sag at mid-slope. Shop awning on the front: from (z 3.0, y 3.00) down to (z 3.95, y 2.55), x ±2.65, on posts at x ±2.35, z 3.75. Balcony rail 3.05…3.45; two red lanterns at x ±1.45, z 3.6 (bottom ≈ 1.99) |
+| hoian_house_small | 3488 | 4.62 × 3.94 × 6.42 | walls x ±2.0 × z ±2.5; roof (ridge along X) **ridge 3.80 at z = 0, eaves 2.60 at z = ±2.85**, x ±2.25; yellow lantern at the door, potted plant |
+| hoa_dang | 896 | 0.64 × 0.31 × 0.64 | floating paper lotus lantern; origin at the waterline. Flame (`M_Flame`, glows) tops out at 0.31 |
+| basket_boat | 5456 | 2.28 × 0.71 × 2.28 | thúng chai: **rim top 0.70**, **floor 0.25** (inside Ø ≈ 1.7), tarred hull, woven lining, paddle on the floor |
+| nipa_palm | 5868 | 6.25 × 4.28 × 6.36 | dừa nước clump, eleven fronds from the waterline (origin) |
+| lantern_boat | 5588 | 1.57 × 2.03 × 3.95 | Hội An river boat, bow at +Z: **deck 0.55** (z −1.65…+1.65, x ±0.6), canopy frame arches at z = +1.0, +0.3, −0.4, −1.1 up to 2.0, nine silk lanterns. Origin = keel bottom |
+| silk_lantern_string | 2408 | 6.01 × 1.15 × 0.23 | hooks at x = ±3, y = 0; the string sags to −0.80; seven lanterns hang down to −1.14 |
+
+Emissive (glowing) roles: `M_Flame` (3.0), `M_LampGlow` (1.5), `M_PaperYellow` (0.5), `M_Paper` (0.35), and the silk
+lantern colours `M_SilkRed`, `M_SilkYellow`, `M_SilkPurple`, `M_SilkBlue`, `M_SilkGreen`, `M_SilkOrange`, `M_SilkPink`
+(0.25 each). `M_GoldBridge` gets the metallic toon look in Godot because its name contains "Gold".
 
 ## Checkpoint flag (shader route)
 

@@ -15,6 +15,7 @@ var spawn_point := Vector3(0, 2.6, 8.0)
 var star_points: Dictionary = {} ## id -> Vector3 (for warps and the map)
 var _crabs_left: Dictionary = {}
 var _drum_rings: Array[MeshInstance3D] = []
+var life: AmbientLife
 
 
 ## Look settings a level can override before _ready.
@@ -39,6 +40,9 @@ func _ready() -> void:
 	_environment()
 	_sea()
 	build()
+	life = AmbientLife.new()
+	add_child(life)
+	ambient_life(life)
 	Game.coin_total = get_tree().get_nodes_in_group("coin").size()
 	if Game.args.has("count"):
 		print("coins placed: ", Game.coin_total, "  red: ", get_tree().get_nodes_in_group("red_coin").size(), "  stars: ", star_points.size())
@@ -74,6 +78,20 @@ func tour_views() -> Array:
 		["overview", Vector3(60, 70, 90), Vector3(0, 0, -5)],
 		["behind_hero", Vector3.ZERO, Vector3.ZERO],
 	]
+
+
+## Birds, butterflies, leaping fish, kites and far-off sails.
+func ambient_life(l: AmbientLife) -> void:
+	l.gulls(Vector3(0, 0, -5), 34.0, 20.0, 7)
+	l.gulls(Vector3(-40, 0, 36), 14.0, 12.0, 3)
+	l.butterflies(Vector3(0, 0, 2), 9.0, 2.3, 6)
+	l.butterflies(Vector3(-40, 0, -14), 9.0, 2.45, 4)
+	l.butterflies(Vector3(58, 0, 52), 5.0, 1.6, 3)
+	l.fish_area(Vector3.ZERO, 110.0)
+	l.kite(Vector3(-7.5, 2.4, -1.5), 15.0, Color("#e0452b"))
+	l.kite(Vector3(44.0, 2.7, 4.0), 13.0, Color("#3d84c6"), Color("#ffffff"))
+	l.kite(Vector3(-36.0, 1.6, 40.0), 11.0, Color("#ffd23f"), Color("#e0452b"))
+	l.horizon_sails(150.0, 5)
 
 
 func ambience() -> void:
@@ -112,7 +130,7 @@ func _environment() -> void:
 	env.tonemap_mode = Environment.TONE_MAPPER_AGX
 	env.tonemap_exposure = exposure
 	env.tonemap_white = 6.0
-	env.glow_enabled = true
+	env.glow_enabled = not Game.args.has("noglow")
 	env.glow_intensity = 0.55
 	env.glow_bloom = 0.06
 	env.glow_hdr_threshold = 1.1
@@ -178,13 +196,15 @@ func _backdrop() -> void:
 		isl.collide = false
 		isl.segments = 32
 		if rng.randf() < 0.55:
-			isl.kind = Island.Kind.STONE
-			isl.radius = rng.randf_range(6.0, 14.0)
+			# Hạ Long limestone towers fading into the haze
+			isl.kind = Island.Kind.KARST
+			isl.radius = rng.randf_range(6.0, 13.0)
 			isl.top = rng.randf_range(18.0, 46.0)
-			isl.bulge = rng.randf_range(0.1, 0.3)
-			isl.taper = -0.2
-			isl.dome = 2.5
-			isl.lip = 3.0
+			isl.bulge = rng.randf_range(0.05, 0.25)
+			isl.taper = rng.randf_range(-0.35, 0.0)
+			isl.dome = isl.radius * 0.35
+			isl.lip = isl.radius * 0.4
+			isl.wobble = 0.18
 		else:
 			isl.kind = Island.Kind.GRASS
 			isl.radius = rng.randf_range(18.0, 40.0)
@@ -334,9 +354,14 @@ func plank_bridge(a: Vector3, b: Vector3, gap_at := -1.0) -> void:
 	var spans := [[0.0, 1.0]]
 	if gap_at >= 0.0:
 		spans = [[0.0, gap_at - gap], [gap_at + gap, 1.0]]
+	# a short ramp dips from each end into the island, so stepping on or off never meets a
+	# little wall where the island's rounded edge has already dropped away
+	var ext := d.normalized() * 1.8
+	spans.append([a - ext + Vector3.DOWN * 0.7, a])
+	spans.append([b, b + ext + Vector3.DOWN * 0.7])
 	for sp in spans:
-		var p0 := a.lerp(b, sp[0])
-		var p1 := a.lerp(b, sp[1])
+		var p0: Vector3 = sp[0] if sp[0] is Vector3 else a.lerp(b, sp[0])
+		var p1: Vector3 = sp[1] if sp[1] is Vector3 else a.lerp(b, sp[1])
 		var body := StaticBody3D.new()
 		body.collision_layer = 1
 		body.collision_mask = 0
@@ -556,7 +581,7 @@ func _pagoda() -> void:
 	coin_ring(Vector3(-47, 3.0, -8), 2.2, 6)
 	coin_line(Vector3(-50, 3.0, -14), Vector3(-50, 3.0, -21), 4)
 	red_coin(Vector3(-41.5, 10.6, -22.0)) # 3: above the highest bamboo step
-	crab(Vector3(-22, 2.6, -6.5), 1.2)
+	crab(Vector3(-31.5, 2.6, -5.0), 1.5)
 
 
 func _karsts() -> void:
