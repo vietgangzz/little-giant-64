@@ -390,7 +390,7 @@ def hoian_house_small(col):
 
 # --------------------------------------------------------------------------------------------
 def hoa_dang(col):
-    """Hoa đăng: a paper lotus lantern that floats on the river, three rings of petals around a
+    """A floating flower lantern (hoa đăng): a paper lotus lantern that floats on the river, three rings of petals around a
     candle with a glowing flame. Origin at the base (the waterline)."""
     k = Kit()
     k("M_Paper", smooth=30).extrude_poly([(0.17 * math.cos(a), 0.17 * math.sin(a)) for a in
@@ -417,7 +417,7 @@ def hoa_dang(col):
 
 # --------------------------------------------------------------------------------------------
 def basket_boat(col):
-    """Thúng chai: a round woven bamboo boat, tarred below, basket weave up the side, a thick
+    """A basket boat (thúng chai): a round woven bamboo boat, tarred below, basket weave up the side, a thick
     bamboo rim and a paddle on the floor. Rim top 0.70, walkable floor 0.25."""
     k = Kit()
     # a thin tarred outer shell, lined inside with weave (the floor top is the walkable 0.25)

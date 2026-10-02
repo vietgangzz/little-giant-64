@@ -1,7 +1,7 @@
 class_name HudIcon
 extends Control
-## Hand-drawn HUD icons: the đồng xu coin, the bronze star, a red lantern, a dragon pearl, a
-## hoa đăng flower lantern and a health pip.
+## Hand-drawn HUD icons: the bronze coin, the bronze star, a red lantern, a dragon pearl, a
+## floating flower lantern and a health pip.
 
 enum Kind { COIN, STAR, LANTERN, HEART, PEARL, LOTUS }
 
@@ -47,7 +47,7 @@ func _draw() -> void:
 			draw_circle(c - Vector2(r * 0.22, r * 0.22), r * 0.3, Color(1, 1, 1, 0.95))
 			draw_arc(c, r * 0.9, PI * 0.1, PI * 1.1, 24, UiKit.GOLD, 4.0)
 		Kind.LOTUS:
-			# hoa đăng: a paper lotus with a candle flame
+			# a floating flower lantern: a paper lotus with a candle flame
 			var on := filled
 			_ellipse(c + Vector2(0, r * 0.55 + 3), Vector2(r * 0.95, r * 0.28), Color(0.05, 0.08, 0.2, 0.45))
 			for i in 5:

@@ -1,4 +1,4 @@
-"""Blocks and drums: drum_block ("?"), used_block, brick_block, jelly_block (bánh chưng),
+"""Blocks and drums: drum_block ("?"), used_block, brick_block, jelly_block (a bánh chưng rice cake),
 drum_spring, crusher, drum_big (finale stage)."""
 
 import math

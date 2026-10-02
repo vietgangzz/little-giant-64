@@ -1,11 +1,11 @@
 class_name JellyBlock
 extends AnimatableBody3D
-## A wobbly bánh chưng block that drifts along an axis. Lands squish it.
+## A wobbly rice-cake block (bánh chưng) that drifts along an axis. Landing on it squishes it.
 
 var travel := Vector3(0, 1.6, 0)
 var period := 4.0
 var phase := 0.0
-var size := 1.35 ## scale of the 1.6 m bánh chưng
+var size := 1.35 ## scale of the 1.6 m rice cake
 var _home := Vector3.ZERO
 var _t := 0.0
 var _visual: Node3D

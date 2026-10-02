@@ -1,6 +1,6 @@
 class_name Coin
 extends Area3D
-## A spinning đồng xu. Red lanterns use the same script with `red = true`.
+## A spinning bronze coin with a square hole. Red lanterns use the same script with `red = true`.
 ## Quick successive pickups raise the chime's pitch, like a Mario coin run.
 
 static var _chain := 0

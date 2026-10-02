@@ -326,7 +326,7 @@ def raft_platform(col):
 
 
 def raft_house(col):
-    """Nhà bè: 6 x 6 m plank raft on blue barrels with a 4 x 4 m wooden house (blue corrugated
+    """Raft house: 6 x 6 m plank raft on blue barrels with a 4 x 4 m wooden house (blue corrugated
     gable roof), front porch with railing, potted plant, hanging lantern, clothesline and a
     thúng chai basket boat."""
     pa = Part("M_Wood", smooth=40, bevel=(0.015, 1))

@@ -156,6 +156,15 @@ godot --path . -- --level=danang --start --paused   # opens the pause menu (layo
 godot --path . -- --debug-hurt                      # prints where and why every health pebble is lost
 ```
 
+## Trailers
+
+```bash
+tools/record_trailer.sh            # the ~60 s two-map trailer, 2560x1440
+tools/record_trailer.sh danang     # the ~30 s Đà Nẵng – Hội An trailer in an iPhone Duo frame (needs numpy + Pillow)
+```
+
+Every shot is real gameplay recorded with Movie Maker; see [docs/TRAILER.md](docs/TRAILER.md).
+
 ## Export
 
 `export_presets.cfg` has a universal macOS preset (`build/macos/LittleGiant64.zip`):

@@ -449,7 +449,7 @@ def bridge_plank(col):
 
 # --------------------------------------------------------------------------------------------
 def cong_lang(col):
-    """Cổng làng (village gate): lime-washed arch wall between two square pillars, small tiled
+    """Village gate (cổng làng): lime-washed arch wall between two square pillars, small tiled
     hip roof with curled corners, red signboard with a gold drum star. ~4.4 x 1.2 x 4.7 m."""
     wall = Part("M_Mortar", smooth=35, bevel=(0.03, 2))
     trim = Part("M_StoneLight", smooth=35, bevel=(0.025, 2))

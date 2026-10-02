@@ -1,6 +1,6 @@
 class_name Dragon
 extends Node3D
-## Rồng: a long friendly dragon flying a closed loop over the bay. Every body segment is a
+## A long friendly dragon flying a closed loop over the bay. Every body segment is a
 ## moving platform, so the hero can ride its back, run up to the head, and jump off at the top.
 
 var path: Curve3D
