@@ -1,7 +1,7 @@
 class_name Trailer
 extends Node
 ## The demo-video director (docs/TRAILER.md). Run under Movie Maker:
-##   godot --path . --write-movie clip.avi -- --trailer=skies|halong|finale
+##   godot --path . --write-movie clip.avi -- --trailer=skies|halong|finale|danang
 ## It plays each shot for real (the QA bot presses the buttons), moves the camera, shows
 ## captions, and prints "SHOT name start_frame end_frame" so tools/record_trailer.sh can cut
 ## every shot to length.
@@ -30,11 +30,22 @@ func _ready() -> void:
 	add_child(bot)
 	bot.player = player
 	_build_overlay()
+	if Game.is_phone():
+		# filmed with the phone renderer, but sharp: full-size 3D and no on-screen buttons
+		get_viewport().scaling_3d_scale = 1.0
+		var touch := main.get_node_or_null("TouchControls")
+		if touch:
+			touch.queue_free()
+	if String(Game.args["trailer"]) == "danang":
+		# name boards help players find their way; on film they only clutter the frame
+		for l in world.find_children("*", "Label3D", true, false):
+			(l as Label3D).visible = false
 	_t0 = Engine.get_process_frames()
 	match String(Game.args["trailer"]):
 		"skies": await _skies()
 		"halong": await _halong()
 		"finale": await _finale()
+		"danang": await _danang()
 	await _hold(0.3)
 	print("TRAILER DONE ", _frame())
 	get_tree().quit()
@@ -195,7 +206,7 @@ func _skies() -> void:
 		player.lock(true)
 		player.facing = Vector3.BACK
 		player.model.play("wave", 0.1)
-		caption("Mascot VGANG  ·  dựng, rig & animate bằng Blender", 4.2)
+		caption("The VGANG mascot  ·  modelled, rigged and animated in Blender", 4.2)
 		var c := player.global_position + Vector3.UP * 0.55
 		camera.orbit_shot(c, 2.6, 0.35, 0.15, PI * 1.12, 4.8)
 		await _hold(1.7)
@@ -207,7 +218,7 @@ func _skies() -> void:
 		hud.visible = true
 		await place(Vector3(-11.0, 2.6, 1.0), Vector3.RIGHT)
 		follow_cam()
-		caption("Nhảy 3 bậc  ·  lộn nhào  ·  lướt  ·  dậm đất", 4.6)
+		caption("Triple jump  ·  flip  ·  dash  ·  ground pound", 4.6)
 		var dir := Vector3.RIGHT
 		player.bot_world_dir = dir
 		await bot._wait(0.45)
@@ -223,7 +234,7 @@ func _skies() -> void:
 	await shot("block_spring", func():
 		await place(Vector3(-5.0, 2.6, 5.6), Vector3.FORWARD)
 		follow_cam()
-		caption("Khối ? tung xu  ·  trống đồng lò xo", 4.0)
+		caption("? blocks pay out coins  ·  spring drums", 4.0)
 		await bot._wait(0.35)
 		await bot._goto(Vector3(-5.0, 0, 4.0), 0.25)
 		player.bot_world_dir = Vector3.ZERO
@@ -242,7 +253,7 @@ func _skies() -> void:
 	await shot("terraces_star", func():
 		await place(Vector3(48.5, 9.4, -9.2), Vector3(0.6, 0, -0.8))
 		follow_cam()
-		caption("8 ngôi sao đồng Đông Sơn", 2.2)
+		caption("8 bronze Đông Sơn stars", 2.2)
 		await bot._wait(0.4)
 		await bot._leap(Vector3(51.3, 0, -12.8), 0.35, false)
 		player.bot_world_dir = Vector3.ZERO
@@ -255,7 +266,7 @@ func _skies() -> void:
 	# 6. a fly-through of the landmarks
 	await shot("montage", func():
 		hud.visible = false
-		caption("Hạ Long Skies  ·  146 đồng xu  ·  8 sao", 5.0)
+		caption("Hạ Long Skies  ·  146 coins  ·  8 stars", 5.0)
 		await dolly(Vector3(-28, 6, -5), Vector3(-31, 9.5, -25), Vector3(-42, 5, -15), Vector3(-41, 6, -17), 1.9)
 		await dolly(Vector3(25, 5.5, -20), Vector3(29.5, 7.5, -27), Vector3(28, 5, -38), Vector3(28, 7, -40), 1.8)
 		await dolly(Vector3(-1, 5.5, -15), Vector3(-3.5, 7, -27), Vector3(-7.5, 3, -21), Vector3(-9, 4, -29), 1.8))
@@ -265,7 +276,7 @@ func _skies() -> void:
 		hud.visible = true
 		await place(Vector3(5.2, 2.6, 13.2), Vector3(0.3, 0, 1))
 		follow_cam()
-		caption("Lên thuyền buồm  →  Vịnh Hạ Long", 2.6)
+		caption("All aboard  →  Hạ Long Bay", 2.6)
 		await bot._goto(Vector3(6.5, 0, 18.3), 0.4, 2.5)
 		player.bot_world_dir = Vector3.ZERO
 		await _hold(2.6))
@@ -290,7 +301,7 @@ func _halong() -> void:
 		hud.visible = true
 		await place(Vector3(21.5, 1.4, -1.2), Vector3.RIGHT)
 		follow_cam()
-		caption("Làng chài nổi trên vịnh", 3.0)
+		caption("The floating fishing village", 3.0)
 		await bot._wait(0.2)
 		await bot._goto(Vector3(40.5, 0, -1.2), 0.5, 3.6)
 		player.bot_world_dir = Vector3.ZERO
@@ -300,7 +311,7 @@ func _halong() -> void:
 	await shot("cave", func():
 		await place(Vector3(-24.6, 1.4, -24.6), Vector3(-0.7, 0, -0.7))
 		camera.cutscene = true
-		caption("Hang Sửng Sốt", 3.2)
+		caption("Surprise Cave", 3.2)
 		var watch := func(): await track_from(Vector3(-26.0, 5.2, -20.0), 4.0, 0.8)
 		watch.call()
 		await bot._wait(0.3)
@@ -317,7 +328,7 @@ func _halong() -> void:
 	# 11. wall-kicks up the Fighting Cock rocks
 	await shot("trongmai", func():
 		await place(Vector3(-24.8, 1.2, 25.0), Vector3.LEFT)
-		caption("Đạp tường  ·  Hòn Trống Mái", 3.4)
+		caption("Wall kicks  ·  the Fighting Cock rocks", 3.4)
 		var watch := func(): await track_from(Vector3(-24.8, 5.5, 35.5), 4.2, 0.5)
 		watch.call()
 		await bot._wait(0.25)
@@ -330,7 +341,7 @@ func _halong() -> void:
 		await place(Vector3(7.2, 1.4, 1.0), Vector3.RIGHT)
 		# a body segment reaches the jetty about a second from now
 		dragon.set_head(dragon.offset_of(Vector3(9.5, 0.9, 1.0)) + dragon.part_offset(6) - 3.0)
-		caption("Cưỡi rồng bay quanh vịnh!", 3.0)
+		caption("Ride the dragon round the bay!", 3.0)
 		var watch := func(): await track_from(Vector3(3.0, 4.5, 8.0), 3.4, 0.4)
 		watch.call()
 		await bot._board_dragon()
@@ -358,3 +369,135 @@ func _finale() -> void:
 		player.lock(true)
 		await world.all_stars_finale(player)
 		await _hold(6.0))
+
+
+# ------------------------------------------------------------------ map 3
+
+## Keeps the camera at `node`'s position plus `offset`, looking at the hero, for `seconds`.
+func chase(node: Node3D, offset: Vector3, seconds: float, look_up := 0.6) -> void:
+	camera.cutscene = true
+	var t := 0.0
+	while t < seconds:
+		camera.global_position = node.global_position + offset
+		camera.look_at(player.global_position + Vector3.UP * look_up, Vector3.UP)
+		await get_tree().process_frame
+		t += get_process_delta_time()
+
+
+## Đà Nẵng – Hội An, about 30 s once cut: Dragon Bridge, Bà Nà and the Golden Bridge, Hội An,
+## the basket boats and the fireworks.
+func _danang() -> void:
+	var dw := world as DanangWorld
+	var parts := dw.gold_dragon
+	Sound.music("world", 0.2)
+
+	# 1. over the sea to Dragon Bridge, which breathes fire as we arrive
+	await shot("intro", func():
+		hud.visible = false
+		await place(dw.spawn_point, Vector3.FORWARD)
+		player.lock(true)
+		dw.fire._t = 0.9 # the fire starts in about two seconds
+		chapter("MAP 3", "ĐÀ NẴNG – HỘI AN", 3.4)
+		await dolly(Vector3(46, 34, 26), Vector3(15, 11, -24), Vector3(0, 2, -40), Vector3(0, 7, -60), 4.6))
+
+	# 2. along the golden dragon's back, hump by hump, to the star on its head
+	await shot("dragon_star", func():
+		hud.visible = true
+		await place(parts[parts.size() - 1].global_position + Vector3.UP * 1.8, Vector3.FORWARD)
+		var watch := func(): await chase(player, Vector3(7.5, 3.2, 4.5), 9.0, 0.6)
+		watch.call()
+		await bot._wait(0.2)
+		for i in range(parts.size() - 2, -1, -1):
+			if Game.in_cutscene:
+				break
+			await bot._goto(parts[i].global_position, 0.7, 4.0)
+		if not Game.in_cutscene:
+			await bot._goto(parts[0].global_transform * Vector3(0, 0, -0.6), 0.3, 2.0)
+		player.bot_world_dir = Vector3.ZERO
+		await wait_cutscene())
+
+	# 3. the head breathes fire, then water, over the end of the road
+	await shot("fire", func():
+		hud.visible = false
+		await place(Vector3(3.0, 1.6, -88.0), Vector3.FORWARD)
+		player.lock(true)
+		dw.fire._t = 2.8
+		var head := parts[0].global_position
+		await dolly(head + Vector3(9, 1.5, -1), head + Vector3(7, -0.5, -9), head + Vector3(0, 0, -2), head + Vector3(0, -2.5, -5), 3.6))
+
+	# 4. the Bà Nà cable car: hop on the roof and climb into the clouds
+	await shot("cable_car", func():
+		hud.visible = true
+		var car: Sampan = dw.cable_cars[0]
+		car._t = (car.trip + car.pause) * 2.0 - 0.7 # waiting at the bottom, about to leave
+		await place(dw.cable_deck + Vector3.UP * 0.6, Vector3.FORWARD)
+		var dir := (car.b - car.a).normalized()
+		var side := Vector3(dir.z, 0, -dir.x) * 7.5
+		var watch := func(): await chase(car, side + Vector3(0, 4.5, 0) - dir * 4.0, 6.0, 0.8)
+		watch.call()
+		await bot._wait(0.25)
+		await bot._leap(car.global_position, 0.3, false, true)
+		player.bot_world_dir = Vector3.ZERO
+		await bot._wait(5.0))
+
+	# 5. out along the Golden Bridge between the stone hands: STAR GET
+	await shot("golden_star", func():
+		var path := dw.bridge_path
+		await place(path[path.size() - 1] + Vector3.UP * 0.6, Vector3.FORWARD)
+		var out := (dw.golden_bridge_mid - DanangWorld.MOUNTAIN) * Vector3(1, 0, 1)
+		var eye := dw.golden_bridge_mid + out.normalized() * 8.5 + Vector3(0, 2.6, 0)
+		var watch := func(): await track_from(eye, 5.5, 0.4)
+		watch.call()
+		for i in range(path.size() - 2, -1, -1):
+			if Game.in_cutscene:
+				break
+			await bot._goto(path[i], 0.5, 3.0)
+		player.bot_world_dir = Vector3.ZERO
+		await wait_cutscene())
+
+	# 6. down Hội An's lantern street
+	await shot("hoi_an", func():
+		hud.visible = true
+		await place(Vector3(21.0, 1.6, 25.2), Vector3.RIGHT)
+		follow_cam()
+		await bot._wait(0.2)
+		await bot._goto(Vector3(39.0, 0, 25.2), 0.5, 3.4)
+		player.bot_world_dir = Vector3.ZERO
+		await bot._wait(0.3))
+
+	# 7. over the rooftops onto Chùa Cầu
+	await shot("chua_cau", func():
+		await place(Vector3(31.0, 2.2, 25.6), Vector3.BACK)
+		var watch := func(): await track_from(Vector3(43.5, 7.5, 27.0), 5.2, 0.5)
+		watch.call()
+		await bot._hop(Vector3(31.0, 0, 27.9), 1.9, 0.45)
+		player.bot_world_dir = Vector3.ZERO
+		await bot._wait(0.2)
+		await bot._hop(Vector3(31.0, 0, 29.4), 1.3, 0.5)
+		await bot._goto(Vector3(32.6, 0, 32.6), 0.4, 2.0)
+		await bot._leap(Vector3(35.9, 0, 33.8), 0.35, false)
+		player.bot_world_dir = Vector3.ZERO
+		await bot._wait(0.6))
+
+	# 8. the spinning basket boats of the coconut forest
+	await shot("baskets", func():
+		await place(Vector3(51.5, 2.0, 18.6), Vector3.FORWARD)
+		var watch := func(): await track_from(Vector3(55.5, 7.0, 21.5), 4.6, 0.4)
+		watch.call()
+		await bot._wait(0.2)
+		for b in dw.basket_boats.slice(0, 4):
+			await bot._leap(b.global_position, 0.35, false)
+			player.bot_world_dir = Vector3.ZERO
+			await bot._wait(0.15))
+
+	# 9. every star: fireworks over the Hàn river
+	await shot("fireworks", func():
+		for st in Game.level_stars("danang"):
+			Game.stars[st["id"]] = true
+		await place(Vector3(-1.5, 1.6, 0.5), Vector3.FORWARD) # Mỹ Khê, with the bridge behind
+		player.lock(true)
+		dw.fire._t = 2.5
+		await bot._wait(0.3)
+		dw.finale(player)
+		await _hold(7.5))
+
