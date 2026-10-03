@@ -4,9 +4,10 @@
 Reads the SHOT frame ranges each clip printed, keeps a window of every shot, joins the pieces
 with short cross-fades (picture and sound) and encodes H.264 at 60 fps + AAC.
   full:   the ~60 s two-map trailer from skies/halong/finale clips, 2560x1440
-  danang: the ~30 s Đà Nẵng – Hội An cut, at the clip's own size (the Duo's 2034x1398);
-          tools/frame_trailer.py then puts it in the phone frame
-usage: edit_trailer.py RAW_DIR OUT.mp4 FFMPEG [full|danang]
+  danang: the ~30 s Đà Nẵng – Hội An cut, at the clip's own size; tools/frame_trailer.py then
+          puts it in the phone frame. When OUT ends in .mkv the cut is lossless (FFV1 RGB + PCM).
+A clip is RAW/<clip>.avi, or a Movie Maker PNG sequence RAW/<clip>/frame%08d.png + frame.wav.
+usage: edit_trailer.py RAW_DIR OUT FFMPEG [full|danang]
 """
 import re, subprocess, sys
 from pathlib import Path
@@ -57,16 +58,27 @@ for clip in CLIPS:
         if m:
             shots[(clip, m[1])] = (int(m[2]) / FPS, int(m[3]) / FPS)
 
-inputs = {c: i for i, c in enumerate(CLIPS)}
+LOSSLESS = OUT.endswith(".mkv")
+PIX = "gbrp" if LOSSLESS else "yuv420p"
+# every clip brings a video and an audio input: [video index, audio index]
+inputs, in_args = {}, []
+for clip in CLIPS:
+    seq = RAW / clip
+    if seq.is_dir():
+        inputs[clip] = (len(in_args), len(in_args) + 1)
+        in_args += [["-framerate", str(FPS), "-i", str(seq / "frame%08d.png")], ["-i", str(seq / "frame.wav")]]
+    else:
+        inputs[clip] = (len(in_args), len(in_args))
+        in_args += [["-i", str(RAW / f"{clip}.avi")]]
 parts, durs = [], []
 for i, (clip, name, keep, where) in enumerate(PLAN):
     a, b = shots[(clip, name)]
     offset = 0.0 if where in ("head", "tail") else where
     keep = min(keep, b - a - offset)
     start = a if where == "head" else (b - keep if where == "tail" else a + offset)
-    n = inputs[clip]
-    parts.append(f"[{n}:v]trim=start={start:.3f}:duration={keep:.3f},setpts=PTS-STARTPTS,fps={FPS},format=yuv420p[v{i}];"
-                 f"[{n}:a]atrim=start={start:.3f}:duration={keep:.3f},asetpts=PTS-STARTPTS,aresample=48000[a{i}];")
+    vi, ai = inputs[clip]
+    parts.append(f"[{vi}:v]trim=start={start:.3f}:duration={keep:.3f},setpts=PTS-STARTPTS,fps={FPS},format={PIX}[v{i}];"
+                 f"[{ai}:a]atrim=start={start:.3f}:duration={keep:.3f},asetpts=PTS-STARTPTS,aresample=48000[a{i}];")
     durs.append(keep)
     print(f"{clip:7s} {name:14s} {start:7.2f}s + {keep:.2f}s")
 
@@ -84,10 +96,13 @@ chain += f"[{a}]afade=t=in:d=0.3,afade=t=out:st={total - 1.0:.3f}:d=1.0,loudnorm
 print(f"total {total:.2f}s")
 
 cmd = [FFMPEG, "-y", "-v", "error"]
-for clip in CLIPS:
-    cmd += ["-i", str(RAW / f"{clip}.avi")]
-cmd += ["-filter_complex", chain, "-map", "[vout]", "-map", "[aout]",
-        "-c:v", "libx264", "-preset", "slow", "-crf", "16" if CUT == "full" else "10", "-profile:v", "high", "-pix_fmt", "yuv420p",
-        "-r", str(FPS), "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", OUT]
+for args in in_args:
+    cmd += args
+cmd += ["-filter_complex", chain, "-map", "[vout]", "-map", "[aout]", "-r", str(FPS)]
+if LOSSLESS:
+    cmd += ["-c:v", "ffv1", "-level", "3", "-pix_fmt", "gbrp", "-c:a", "pcm_s16le", OUT]
+else:
+    cmd += ["-c:v", "libx264", "-preset", "slow", "-crf", "16" if CUT == "full" else "10", "-profile:v", "high",
+            "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", OUT]
 subprocess.run(cmd, check=True)
 print("wrote", OUT)

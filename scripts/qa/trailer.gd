@@ -31,8 +31,11 @@ func _ready() -> void:
 	bot.player = player
 	_build_overlay()
 	if Game.is_phone():
-		# filmed with the phone renderer, but sharp: full-size 3D and no on-screen buttons
-		get_viewport().scaling_3d_scale = 1.0
+		# filmed with the phone renderer, but sharp: full-size 3D and no on-screen buttons.
+		# --ssaa renders the 3D at twice the size and scales it down (no FXAA blur needed).
+		get_viewport().scaling_3d_scale = 2.0 if Game.args.has("ssaa") else 1.0
+		if Game.args.has("ssaa"):
+			get_viewport().screen_space_aa = Viewport.SCREEN_SPACE_AA_DISABLED
 		var touch := main.get_node_or_null("TouchControls")
 		if touch:
 			touch.queue_free()

@@ -2,7 +2,7 @@
 
 There are two trailers:
 - **The two-map trailer:** ~60 s at 2560×1440, 60 fps. It covers Hạ Long Skies and Hạ Long Bay.
-- **The Đà Nẵng – Hội An trailer:** ~30 s. It shows the third map inside an iPhone Duo frame on an animated backdrop.
+- **The Đà Nẵng – Hội An trailer:** ~31 s in 4K (3840×2160, 60 fps). It shows the third map inside an iPhone Duo frame on an animated backdrop.
 
 **How the footage is made:**
 - Every shot is real gameplay running in the engine.
@@ -51,9 +51,10 @@ There are two trailers:
 ## The Đà Nẵng – Hội An trailer (~31 s, iPhone Duo frame)
 
 **How it differs:**
-- **Renderer:** filmed with the phone renderer (`--rendering-method mobile --phone`) at the iPhone Duo's unfolded screen size, 2034×1398, so the picture is what the Duo draws.
-- **Sharpness and buttons:** the director turns the 3D scale back to 100% and hides the on-screen buttons.
+- **Renderer:** filmed with the phone renderer (`--rendering-method mobile --phone`) at 2220×1526. That is the iPhone Duo's unfolded screen (2034×1398) at the size it takes in the 4K frame, so nothing is rescaled.
+- **Sharpness and buttons:** `--ssaa` renders the 3D at twice that size and scales it down instead of using FXAA, and the director hides the on-screen buttons.
 - **Signs:** it also hides the in-world name signs.
+- **Lossless pipeline:** Movie Maker writes PNG frames plus a WAV, the cut is FFV1 + PCM, and the master is ProRes 422 HQ with PCM sound. Only the upload copy is H.264 (CRF 12).
 
 | # | Length | Picture |
 |---|---|---|
@@ -69,20 +70,24 @@ There are two trailers:
 | 10 | 4.2 s | **Fireworks.** Over Mỹ Khê for **ĐÀ NẴNG CLEAR!** |
 
 **The frame (`tools/frame_trailer.py`):**
-- **Phone:** the gameplay goes into a drawn iPhone Duo, unfolded, with a graphite band, a black glass border, the hinge crease and a punch-hole camera on the right panel. It floats gently, with its reflection on the floor.
+- **Phone:** the gameplay goes into an unfolded iPhone Duo.
+  - **Screen shape:** taken from the simulator itself (`xcrun simctl io <udid> screenshot --mask=alpha`, kept as `tools/iphone_duo_screen.png`). That gives big rounded top corners, small bottom ones and the front camera in the top-left corner. There is no crease.
+  - **Body:** a black glass border and a graphite band are grown out of that shape.
+  - **Motion:** the phone floats gently, with its reflection on the floor.
 - **Backdrop:**
   - a dusk sky with twinkling stars
   - a retro sun in brand lime and orange setting behind Hội An's roofs
   - silhouettes of the Marble Mountains and Dragon Bridge on the left, and Bà Nà's Golden Bridge on the right
   - silk lanterns drifting up and four-point sparkles
   - a lime perspective grid rolling towards the viewer
+- **Smooth motion:** every moving thing is placed with sub-pixel precision, so slow drifts never step.
 - **Watermark:** a small `vgang.studio` at the bottom.
 
 ## Recording
 
 ```bash
 tools/record_trailer.sh            # the two-map trailer → build/trailer/little-giant-64-trailer.mp4
-tools/record_trailer.sh danang     # the Đà Nẵng – Hội An trailer → build/trailer_dn/danang-trailer-2k.mp4
+tools/record_trailer.sh danang     # the Đà Nẵng – Hội An trailer → build/trailer_4k/danang-trailer-4k-master.mov (+ .mp4)
 ```
 
 **What the script does:**
@@ -90,6 +95,6 @@ tools/record_trailer.sh danang     # the Đà Nẵng – Hội An trailer → bu
 - **Shot marks:** the director prints the frame range of every shot (`SHOT <name> <first frame> <last frame>`).
 - **Cutting:** `tools/edit_trailer.py` uses those marks to cut every shot to length and joins them with short cross-fades.
 - **Framing:** for the Đà Nẵng cut, `tools/frame_trailer.py` then puts it in the phone frame. It needs `numpy` and `Pillow`.
-- **Output:** H.264 2560×1440 60 fps with AAC sound.
+- **Output:** H.264 2560×1440 60 fps with AAC sound for the two-map trailer. The Đà Nẵng trailer gets a 3840×2160 60 fps ProRes 422 HQ master and an H.264 copy.
 
 Keep the Godot window visible while it records: macOS stops drawing windows that are covered.

@@ -160,7 +160,7 @@ godot --path . -- --debug-hurt                      # prints where and why every
 
 ```bash
 tools/record_trailer.sh            # the ~60 s two-map trailer, 2560x1440
-tools/record_trailer.sh danang     # the ~30 s Đà Nẵng – Hội An trailer in an iPhone Duo frame (needs numpy + Pillow)
+tools/record_trailer.sh danang     # the ~31 s Đà Nẵng – Hội An trailer in an iPhone Duo frame, 4K ProRes master (needs numpy + Pillow)
 ```
 
 Every shot is real gameplay recorded with Movie Maker; see [docs/TRAILER.md](docs/TRAILER.md).
