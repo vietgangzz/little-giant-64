@@ -27,8 +27,10 @@ func _ready() -> void:
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if Game.touch_mode:
-		# keep the counters clear of rounded corners and the Dynamic Island
-		root.offset_left = 70
+		# keep the counters clear of the rounded corners, the Dynamic Island and the iPhone Duo's
+		# front camera, which sits in the top-left corner of the unfolded screen (canvas x 83-187).
+		# The right side only has to clear the corner: the pause button sits left of the pips.
+		root.offset_left = 190
 		root.offset_right = -70
 	add_child(root)
 	_build_counters()
