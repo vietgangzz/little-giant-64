@@ -179,13 +179,3 @@ func _make_mesh() -> ArrayMesh:
 			st.add_index(d)
 	st.generate_normals()
 	return st.commit()
-
-
-## Height of the top surface at a world-space XZ point, or -INF when outside the island.
-func surface_y(world_xz: Vector2) -> float:
-	var local := world_xz - Vector2(global_position.x, global_position.z)
-	local = Vector2(local.x / stretch.x, local.y / stretch.y)
-	if local.length() > radius * 0.95:
-		return -INF
-	var f := local.length() / radius
-	return global_position.y + top + dome * (1.0 - f * f)

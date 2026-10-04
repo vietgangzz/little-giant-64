@@ -214,21 +214,6 @@ static func solidify(node: Node3D, layer := 1) -> StaticBody3D:
 
 
 ## Adds a single primitive collider (cheaper than trimesh for simple things).
-static func add_box(parent: Node3D, size: Vector3, offset := Vector3.ZERO, layer := 1) -> StaticBody3D:
-	var body := StaticBody3D.new()
-	body.collision_layer = layer
-	body.collision_mask = 0
-	var cs := CollisionShape3D.new()
-	var box := BoxShape3D.new()
-	box.size = size
-	cs.shape = box
-	body.add_child(cs)
-	parent.add_child(body)
-	# the body sits at the offset so rotating it turns the box in place
-	body.position = offset
-	return body
-
-
 static func add_cylinder(parent: Node3D, radius: float, height: float, offset := Vector3.ZERO, layer := 1) -> StaticBody3D:
 	var body := StaticBody3D.new()
 	body.collision_layer = layer

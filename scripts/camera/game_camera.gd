@@ -15,19 +15,15 @@ var pitch := deg_to_rad(17.0)
 var distance := 5.6
 var zoom_index := 0
 var cutscene := false
-var cut_from: Transform3D
-var cut_to: Transform3D
 
 var _yaw_goal := 0.0
 var _manual_timer := 0.0
 var _focus := Vector3.ZERO
 var _ground_y := 0.0
 var _cur_dist := 5.6
-var _shake := 0.0
 var _shake_time := 0.0
 var _shake_strength := 0.0
 var _fov_boost := 0.0
-var _mouse_captured := false
 
 
 func _ready() -> void:

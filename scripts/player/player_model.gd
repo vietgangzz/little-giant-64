@@ -68,10 +68,6 @@ func _setup_anims() -> void:
 	anim.playback_default_blend_time = 0.15
 
 
-func has_anim(n: String) -> bool:
-	return anim != null and anim.has_animation(n)
-
-
 ## Cross-fades to `n`. Looping clips keep playing if already current (only the speed changes);
 ## one-shots restart.
 func play(n: String, blend := 0.15, speed := 1.0) -> void:

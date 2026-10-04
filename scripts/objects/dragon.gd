@@ -13,7 +13,6 @@ var head: Node3D
 var _parts: Array[Node3D] = []
 var _s := 0.0
 var _length := 0.0
-var _baked: PackedVector3Array
 
 
 func _ready() -> void:
@@ -100,8 +99,3 @@ func offset_of(point: Vector3) -> float:
 
 func part_offset(i: int) -> float:
 	return _offset(i)
-
-
-## Where along the path the head is (world space) — the bot uses it.
-func head_position() -> Vector3:
-	return head.global_position

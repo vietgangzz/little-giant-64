@@ -6,7 +6,6 @@ signal coins_changed(count: int)
 signal red_coins_changed(count: int)
 signal star_collected(id: String)
 signal health_changed(hp: int)
-signal all_stars
 signal language_changed
 
 const SAVE_PATH := "user://save.json"
@@ -14,7 +13,8 @@ const MAX_HP := 3
 const RED_COIN_TOTAL := 8
 const COIN_STAR_AT := 100
 
-## The eight bronze stars. `hint` is shown on the pause map; `where` is filled in by the world.
+## Every bronze star of every level (`level` says which).
+## `hint` is shown on the pause map; `where` is filled in by the world.
 const STARS := [
 	{"id": "terraces", "level": "skies", "en": "Top of the Rice Terraces", "vi": "Đỉnh Ruộng Bậc Thang",
 		"hint_en": "Climb the terraces east of home.", "hint_vi": "Leo ruộng bậc thang phía đông."},
@@ -98,7 +98,8 @@ var touch_mode := false
 ## Command-line switches (after `--`): --start --god --shot=SEC:PATH --warp=ID --tour=DIR
 ## --all-stars --bot --lang=vi --quit-after-shot --level=skies|halong|danang --phone --touch
 ## --touch-qa --touch-qa-travel --trailer=CLIP --paused (opens the pause menu) --fps --count
-## --noglow --nofog --debug-hurt (prints where every health pebble is lost)
+## --noglow --nofog --debug-hurt (prints where every health pebble is lost) --ssaa (trailer
+## supersampling) --trace --trace-fine (bot state traces) --quit (ends a --touch-qa run)
 var args: Dictionary = {}
 
 
@@ -145,8 +146,8 @@ func _phone_video() -> void:
 	RenderingServer.directional_soft_shadow_filter_set_quality(RenderingServer.SHADOW_QUALITY_SOFT_LOW)
 
 
-## A haptic tap on phones: light (a button), medium (a landing), heavy (a ground pound),
-## success (a star) or error (getting hurt). In the React Native app the host plays it
+## A haptic tap on phones: light (a button), medium, heavy (a ground pound), success (a star)
+## or error (getting hurt). In the React Native app the host plays it
 ## through the iOS haptic engine; a bare phone build falls back to a plain vibration.
 func haptic(kind := "light") -> void:
 	if not is_phone():
@@ -368,17 +369,6 @@ func load_save() -> void:
 		level = "skies"
 	for l in data.get("finished_levels", []):
 		finished_levels[String(l)] = true
-
-
-func reset_progress() -> void:
-	stars.clear()
-	taken.clear()
-	coins = 0
-	red_coins = 0
-	hp = MAX_HP
-	finished = false
-	play_time = 0.0
-	save()
 
 
 # ---------------------------------------------------------------- input

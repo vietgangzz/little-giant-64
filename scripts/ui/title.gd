@@ -11,7 +11,6 @@ var _menu: VBoxContainer
 var _items: Array[Label] = []
 var _index := 0
 var _t := 0.0
-var _press: Label
 
 
 func _ready() -> void:

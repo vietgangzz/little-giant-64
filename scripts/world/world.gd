@@ -10,7 +10,6 @@ var player: Player
 var camera: GameCamera
 var sun: DirectionalLight3D
 var env: Environment
-var big_drum: Node3D
 var spawn_point := Vector3(0, 2.6, 8.0)
 var star_points: Dictionary = {} ## id -> Vector3 (for warps and the map)
 var _crabs_left: Dictionary = {}
@@ -351,7 +350,7 @@ func plank_bridge(a: Vector3, b: Vector3, gap_at := -1.0) -> void:
 		var pos := a.lerp(b, t)
 		var p := prop("bridge_plank", pos, yaw + randf_range(-0.03, 0.03))
 		p.position.y = pos.y - 0.21
-	# one smooth deck per stretch (separate plank boxes left little steps that stopped the hero)
+	# one smooth deck per stretch, so the planks never leave little steps that stop the hero
 	var spans := [[0.0, 1.0]]
 	if gap_at >= 0.0:
 		spans = [[0.0, gap_at - gap], [gap_at + gap, 1.0]]
@@ -439,7 +438,7 @@ func scatter(center: Vector3, radius: float, count: int, top_y: float, names: Ar
 func _home() -> void:
 	island(Vector3.ZERO, 15.0, 2.0, Island.Kind.GRASS, {"dome": 0.4, "seed": 3})
 	# the great bronze drum: the finale stage
-	big_drum = prop("drum_big", Vector3(0, 2.3, -6.5), 0.0, 1.0)
+	prop("drum_big", Vector3(0, 2.3, -6.5), 0.0, 1.0)
 	Props.add_cylinder(self, 2.05, 2.2, Vector3(0, 3.4, -6.5))
 	_add_drum_glow()
 	coin_ring(Vector3(0, 6.3, -6.5), 1.5, 6)

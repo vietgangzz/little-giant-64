@@ -120,7 +120,7 @@ func _rebuild() -> void:
 		row.add_child(col)
 		stars.add_child(row)
 	var what := Game.red_name()
-	var red := UiKit.label("%s  %d / 8    ·    %s  %d    ·    %s  %d / %d" % [what, Game.red_coins, Game.t("Coins", "Đồng xu"), Game.coins, Game.t("All stars", "Tổng sao"), Game.star_count(), Game.STARS.size()], 26, Color("#ffc9b8"), 6, false)
+	var red := UiKit.label("%s  %d / %d    ·    %s  %d    ·    %s  %d / %d" % [what, Game.red_coins, Game.RED_COIN_TOTAL, Game.t("Coins", "Đồng xu"), Game.coins, Game.t("All stars", "Tổng sao"), Game.star_count(), Game.STARS.size()], 26, Color("#ffc9b8"), 6, false)
 	red.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	stars.add_child(red)
 

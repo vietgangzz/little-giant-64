@@ -18,7 +18,6 @@ var _toon_cache: Dictionary = {}
 var _outline_cache: Dictionary = {}
 var _puff_mesh: SphereMesh
 var _puff_mat: StandardMaterial3D
-var _hitstop_until := 0
 
 
 func _ready() -> void:

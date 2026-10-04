@@ -65,7 +65,6 @@ var _idle_time := 0.0
 var _checkpoint := Vector3.ZERO
 var _wall_normal := Vector3.ZERO
 var _was_on_floor := false
-var _knock := Vector3.ZERO
 var bot_input := Vector2.ZERO ## used by the QA bot instead of the pad
 var bot_jump := false
 var bot_dash := false
