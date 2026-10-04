@@ -28,6 +28,12 @@ Reanimated splash: see [mobile/README.md](mobile/README.md).
 
 ![title](docs/shots/title.png)
 
+| | |
+|---|---|
+| ![One Pillar Pagoda, Hạ Long Skies](docs/shots/skies-pagoda.jpg) | ![Floating village, Hạ Long Bay](docs/shots/halong-village.jpg) |
+| ![Ti Tốp pavilion, Hạ Long Bay](docs/shots/halong-titop.jpg) | ![Dragon Bridge, Đà Nẵng](docs/shots/danang-dragon-bridge.jpg) |
+| ![Golden Bridge, Bà Nà](docs/shots/danang-golden-bridge.jpg) | ![Chùa Cầu, Hội An](docs/shots/hoian-chua-cau.jpg) |
+
 ## Play
 
 ```bash
@@ -134,10 +140,10 @@ godot --headless --path . --import      # REQUIRED: a running game reads the old
 
 ```bash
 # every star route, played by the bot with real inputs (fast: fixed timestep)
-godot --headless --path . --fixed-fps 60 -- --bot=all
-godot --headless --path . --fixed-fps 60 -- --bot=karst --trace     # one route, with a state trace
-godot --headless --path . --fixed-fps 60 -- --level=halong --bot=hl_village,hl_cave,hl_trongmai,hl_dragon,hl_titop,hl_pearls
-godot --headless --path . --fixed-fps 60 -- --level=danang --bot=dn_dragon,dn_goldenbridge,dn_marble,dn_chuacau,dn_basket,dn_lanterns,dn_coins
+godot --headless --path . --fixed-fps 60 -- --bot=all                  # every route of Hạ Long Skies
+godot --headless --path . --fixed-fps 60 -- --level=halong --bot=all   # … of Hạ Long Bay (hl_* routes)
+godot --headless --path . --fixed-fps 60 -- --level=danang --bot=all   # … of Đà Nẵng – Hội An (dn_* routes)
+godot --headless --path . --fixed-fps 60 -- --bot=karst --trace       # one route, with a state trace
 
 godot --path . -- --tour=/tmp/tour                  # screenshots of every area
 godot --path . -- --start --warp=pagoda             # jump straight to a star (ids in Game.STARS)
@@ -175,6 +181,19 @@ mkdir -p build/macos && godot --headless --path . --export-release macOS build/m
 
 Forward+ has no web export. Switching the renderer to Compatibility would allow one, but the sea
 foam needs the depth texture.
+
+## License
+
+- **Code** (GDScript, shaders, Python and shell tools, the React Native app) is
+  [MIT](LICENSE).
+- **The Little Giant mascot and the VGANG brand** are © VGANG Studio, all rights reserved. That
+  covers the character itself and every file that depicts it: `blender/common/mascot_artwork.json`,
+  `blender/mascot/mascot.blend`, `blender/mascot/renders/`, `assets/models/mascot.glb`, `icon.png`,
+  `mobile/assets/hero.png` and the app icon. The Python scripts in `blender/mascot/` are MIT like
+  the rest of the code. You may build and run the game from this repo, but don't reuse the mascot in
+  your own projects.
+- **Music, sound effects and fonts** keep their original licences (CC0, CC BY and SIL OFL); see
+  [assets/CREDITS.md](assets/CREDITS.md).
 
 ---
 Made with ♥ by VG TEAM · Blender · Godot

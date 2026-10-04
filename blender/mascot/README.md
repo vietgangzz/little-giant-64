@@ -35,6 +35,7 @@ It never saves the scene back into the .blend.
 | `build_mascot.py` | geometry, materials, armature, skin weights, export |
 | `mascot_anims.py` | the `Keyer` helper and the 17 clips |
 | `render_qa.py` | QA renders |
+| `render_splash.py` | the waving mascot for the phone app's splash (`mobile/assets/hero.png`) |
 | `../common/lg_svg.py` | SVG path parser (M/L/H/V/Q/T/C/S/Z) → polylines |
 | `../common/mascot_artwork.json` | the approved brand vectors (input) |
 
@@ -187,7 +188,7 @@ How the clips are authored:
    which is safe because the rig has no helper bones.
 4. **Twist shear.** A wide pebble shears badly when the head twists over a narrow weight band.
    Big turns belong on `hips`, which is rigid, with only a few degrees on spine or head.
-   Widening the blend bands fixed the remaining crease.
+   Wide blend bands keep the body free of creases.
 5. **Lagged samples in loops.** Any sample lag inside a loop must wrap (`(f - lag) % L`), or the
    seam pops. That happened once in `dance`.
 6. **Determinism.** Geometry, weights and animation are identical run to run. The glTF
@@ -200,8 +201,7 @@ How the clips are authored:
 
 | contract | actual | why |
 |---|---|---|
-| Cape: orange-red `#E0452B` with a gold Đông Sơn star | Vietnamese flag: red `#DA251D` with a yellow 5-point star (`M_FlagStar`) | Owner's request |
-| Cape hangs to z ≈ 0.25 | Small cape, z 0.80 → 0.38 | Lime must dominate from the behind-the-hero camera (coordinator's request) |
+| Cape hangs to z ≈ 0.25 | Small cape, z 0.80 → 0.38 | Lime must dominate from the behind-the-hero camera |
 | Body about 1.10 wide | 1.17 | Keeps the brand outline's proportions at the mandated 1.05 height |
 | Hands at x ≈ ±0.60 | ±0.73 | At that height the outline itself is ±0.585 wide, so the hands would intersect the body |
 | Inflation formula based on distance to the rim | Poisson/membrane `sqrt(u)` inflation | Same balloon idea, but smoother, with no medial-axis ridges |

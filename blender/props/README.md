@@ -24,7 +24,8 @@ Outputs:
 - `assets/models/props/<name>.glb`: glTF binary, +Y up, modifiers applied, no cameras or lights.
 - `blender/props/renders/sheet_*.png` (Hạ Long Skies), `renders/halong_sheet_*.png` (Vịnh Hạ Long) and
   `renders/danang_sheet_*.png` (Đà Nẵng – Hội An):
-  EEVEE contact sheets, 4 × 3 tiles, 1600 px wide. Per-prop tiles are in `renders/tiles/`.
+  EEVEE contact sheets, 4 × 3 tiles, 1600 px wide. Per-prop tiles go to `renders/tiles/`, which is
+  not committed.
 
 A full build takes about 6 s, and rendering takes about 15 s more.
 

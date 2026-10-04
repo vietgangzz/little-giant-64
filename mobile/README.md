@@ -66,6 +66,8 @@ GODOT_EDITOR=/path/to/Godot_v4.5.1/Godot.app/Contents/MacOS/Godot ./build_ios_si
 
 `build_ios_sim.sh` re-packs the game (`export_game.sh`) and builds the Release app, so the JS bundle is embedded and no Metro server is needed. Given a simulator id, it also installs and launches the app. The default editor path is `~/Applications/godot-4.5.1/Godot.app`. Get Godot 4.5.1 from https://github.com/godotengine/godot/releases/tag/4.5.1-stable (macOS universal).
 
+To run on a real iPhone, open `ios/LittleGiant64.xcworkspace`, pick your own team under *Signing & Capabilities* and change the bundle id (`studio.vgang.littlegiant64.native`) to one you own.
+
 Xcode 27 replaces Simulator.app with **Device Hub** (`Xcode.app/Contents/Applications/DeviceHub.app`). Its toolbar folds and unfolds the iPhone Duo, and clicking the screen is a real touch.
 
 ## Testing touch on a device or simulator

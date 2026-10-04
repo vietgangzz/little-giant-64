@@ -5,4 +5,4 @@ __pycache__/
 .DS_Store
 *.blend1
 *.blend2
-/export_presets.cfg.bak
+blender/props/renders/tiles/
