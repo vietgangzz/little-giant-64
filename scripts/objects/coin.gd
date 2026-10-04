@@ -96,7 +96,8 @@ func _on_body(b: Node) -> void:
 		Sound.play("coin", -5.0, 1.0 + minf(_chain, 12) * 0.035, 0.0)
 		Fx.sparkle(global_position + Vector3.UP * 0.4, Color(1.0, 0.86, 0.35), 7, 3.0, 0.3, 0.45)
 	Game.add_coins(value)
-	if Game.coins % 50 == 0 and value > 0:
+	# a health pebble back every 50 coins (a red coin is worth 2, so it can step over the mark)
+	if value > 0 and floori(Game.coins / 50.0) > floori((Game.coins - value) / 50.0):
 		Game.heal(1)
 	var tw := create_tween().set_parallel(true)
 	tw.tween_property(_visual, "position:y", 1.2, 0.3).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)

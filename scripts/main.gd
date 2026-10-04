@@ -29,7 +29,7 @@ func _ready() -> void:
 	world.player = player
 	world.camera = camera
 	# stand the hero on the spawn point at once: a fresh Player sits at the origin, inside the
-	# home island, and sailing in used to drop it through into the sea during the fade (−2 HP)
+	# home island, and would drop through it into the sea while a level fades in
 	player.teleport(world.spawn_point, Vector3.FORWARD)
 	player.set_checkpoint(world.spawn_point)
 	camera.attach(player)
@@ -192,11 +192,30 @@ func back_to_title() -> void:
 
 # ------------------------------------------------------------------ QA hooks
 
+## Stands the hero a few steps from a star, on the first side that has ground at the star's
+## height (a star on a narrow bridge has none in front of it), facing the star.
 func _warp(id: String) -> void:
 	await get_tree().process_frame
 	if world.star_points.has(id):
 		var p: Vector3 = world.star_points[id]
-		player.teleport(p + Vector3(0, 1.0, 3.5), Vector3.FORWARD)
+		var spot := p + Vector3(0, 1.0, 3.5)
+		var facing := Vector3.FORWARD
+		var space := world.get_world_3d().direct_space_state
+		var found := false
+		for dist in [3.5, 2.5]:
+			for i in 8:
+				var side := Vector3.BACK.rotated(Vector3.UP, i * TAU / 8.0)
+				var q := PhysicsRayQueryParameters3D.create(p + side * dist + Vector3.UP * 0.8, p + side * dist + Vector3.DOWN * 3.0)
+				q.exclude = [player.get_rid()]
+				var hit := space.intersect_ray(q)
+				if hit:
+					spot = hit["position"] + Vector3.UP * 0.2
+					facing = -side
+					found = true
+					break
+			if found:
+				break
+		player.teleport(spot, facing)
 	elif id.contains(","):
 		var v := id.split(",")
 		player.teleport(Vector3(float(v[0]), float(v[1]), float(v[2])), Vector3.FORWARD)
