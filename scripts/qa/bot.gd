@@ -2,7 +2,8 @@ class_name QaBot
 extends Node
 ## Plays scripted routes with real inputs (no teleporting mid-route) to prove each star can be
 ## reached, and prints a trace of the hero's state. Run:
-##   godot --path . -- --bot=<route|all> [--trace] [--god]
+##   godot --path . -- [--level=<id>] --bot=<route|all> [--trace] [--god]
+## `all` plays every route of the level that is loaded (hl_* routes are Hạ Long Bay's, dn_* Đà Nẵng's).
 ## Steps: ["goto", Vector3, tol], ["jump", hold_s], ["djump"], ["dash"], ["pound"], ["wait", s],
 ##        ["hold", Vector3 dir, s], ["star", id], ["warp", Vector3], ["face", Vector3 dir]
 
@@ -123,13 +124,21 @@ func _ready() -> void:
 	if not Game.args.has("bot"):
 		return # used as a move library by the trailer director
 	var which := String(Game.args.get("bot", "moves"))
-	name_list = ROUTES.keys() if which == "all" else which.split(",")
+	name_list = ROUTES.keys().filter(func(r: String) -> bool: return _level_of(r) == Game.level) if which == "all" else which.split(",")
 	await get_tree().create_timer(0.6).timeout
 	player = get_tree().get_first_node_in_group("player")
 	for n in name_list:
 		await _run(n)
 	print("BOT RESULTS: ", _results)
 	get_tree().quit()
+
+
+static func _level_of(route_name: String) -> String:
+	if route_name.begins_with("hl_"):
+		return "halong"
+	if route_name.begins_with("dn_"):
+		return "danang"
+	return "skies"
 
 
 func _log(msg: String) -> void:
@@ -151,10 +160,21 @@ func _run(n: String) -> void:
 			break
 	_results[n] = ok
 	player.bot_world_dir = Vector3.ZERO
-	# let any star cutscene finish
+	# let any star cutscene finish; the level's last star ends on the ending card, which a
+	# player leaves by pressing Jump
 	while Game.in_cutscene:
-		await get_tree().process_frame
+		if Game.finished:
+			_press_jump()
+		await get_tree().create_timer(0.5).timeout
 	await get_tree().create_timer(0.5).timeout
+
+
+func _press_jump() -> void:
+	for pressed in [true, false]:
+		var ev := InputEventAction.new()
+		ev.action = "jump"
+		ev.pressed = pressed
+		Input.parse_input_event(ev)
 
 
 func _step(step: Array):
@@ -436,6 +456,10 @@ func _goto(target: Vector3, tol: float, timeout := 8.0) -> bool:
 		var d := Vector3(target.x - player.global_position.x, 0, target.z - player.global_position.z)
 		if d.length() < tol:
 			return true
+		if Game.in_cutscene:
+			# touched a star on the way in: the route's "star" step checks it was the right one
+			player.bot_world_dir = Vector3.ZERO
+			return true
 		player.bot_world_dir = d.normalized() * clampf(d.length() / 1.5, 0.35, 1.0)
 		await get_tree().physics_frame
 		t += get_physics_process_delta_time()
@@ -620,7 +644,7 @@ func _collect_red() -> bool:
 		var p := (c as Node3D).global_position
 		player.teleport(p + Vector3(0, -0.2, 0), Vector3.FORWARD)
 		await _wait(0.4)
-	return Game.red_coins >= 8
+	return Game.red_coins >= Game.RED_COIN_TOTAL
 
 
 func _trace() -> void:
