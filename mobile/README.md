@@ -86,7 +86,6 @@ The game can drive its own touch controls:
 - **Results:** each step writes a PASS or FAIL line with numbers, such as metres run or degrees turned. A `kept_health` line checks that no health was lost, and a `perf` line logs fps, draw calls and primitives.
 - **Travel:** with `travel` written in `touch_qa.txt`, it sails on from Hạ Long Skies to Vịnh Hạ Long to Đà Nẵng – Hội An through the pause menu and runs the checks again on each map.
 - **How the touches travel:** they go through `Input.parse_input_event` at window coordinates, so they take the same path as a finger.
-- **On desktop:** `godot --path . --resolution 1400x986 -- --touch-qa --quit` runs the same checks.
 
 ## iOS 27 fixes
 
