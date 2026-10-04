@@ -236,9 +236,8 @@ def grown(mask, d):
 
 def device_layers():
     """The unfolded iPhone Duo: the screen mask (the simulator's own), the bezel and band."""
-    real = Image.open(ROOT / "tools/iphone_duo_screen.png")
-    alpha = np.array(real)[..., 3]
-    screen_mask = Image.fromarray(alpha, "L").resize((SCREEN_W, SCREEN_H), Image.LANCZOS)
+    real = Image.open(ROOT / "tools/iphone_duo_screen.png").convert("L")
+    screen_mask = real.resize((SCREEN_W, SCREEN_H), Image.LANCZOS)
     pad = BEZEL + BAND + 4
     ow, oh = SCREEN_W + 2 * pad, SCREEN_H + 2 * pad
     m = Image.new("L", (ow, oh), 0)

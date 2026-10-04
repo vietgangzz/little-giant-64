@@ -71,7 +71,7 @@ There are two trailers:
 
 **The frame (`tools/frame_trailer.py`):**
 - **Phone:** the gameplay goes into an unfolded iPhone Duo.
-  - **Screen shape:** taken from the simulator itself (`xcrun simctl io <udid> screenshot --mask=alpha`, kept as `tools/iphone_duo_screen.png`). That gives big rounded top corners, small bottom ones and the front camera in the top-left corner. There is no crease.
+  - **Screen shape:** taken from the simulator itself (`xcrun simctl io <udid> screenshot --mask=alpha`; its alpha channel is kept as `tools/iphone_duo_screen.png`). That gives big rounded top corners, small bottom ones and the front camera in the top-left corner. There is no crease.
   - **Body:** a black glass border and a graphite band are grown out of that shape.
   - **Motion:** the phone floats gently, with its reflection on the floor.
 - **Backdrop:**

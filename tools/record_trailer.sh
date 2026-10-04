@@ -7,7 +7,9 @@
 #                                     # (needs python3 with numpy and Pillow, ~20 GB of disk)
 set -euo pipefail
 cd "$(dirname "$0")/.."
-FFMPEG=$(ls /opt/homebrew/Cellar/ffmpeg-full/*/bin/ffmpeg 2>/dev/null | tail -1 || command -v ffmpeg)
+# FFMPEG=/path/to/ffmpeg overrides; Homebrew's ffmpeg-full is preferred when installed
+FFMPEG=${FFMPEG:-$(command -v /opt/homebrew/opt/ffmpeg-full/bin/ffmpeg || command -v ffmpeg || true)}
+: "${FFMPEG:?install ffmpeg or set FFMPEG=/path/to/ffmpeg}"
 CUT="${1:-full}"
 
 # A borderless window may be larger than the display; a titled one is shrunk to fit it, and
